@@ -11,17 +11,6 @@ Below is a sample map that all the players will share. There will be walls place
 
 S = Seeker 
 H = Hider 
- _________________________
-|                         |                      
-|    H        ===         |
-|                   H     |
-|              /          |
-|======      S  --        |
-|              \          |
-|     ===                 |
-|                         |
-|       H              ===|
-|_________________________|
 
 
 We will use the ncurses library to create the user interface, and other standard libraries, but nothing else.
