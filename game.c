@@ -3,7 +3,7 @@
 #include <time.h>
 #include <stdlib.h>
 
-#define HI  	  '@'
+#define HI '@'
 
 void game_setup() {
     initscr();
@@ -14,11 +14,19 @@ void game_setup() {
 
     srand( time(NULL) );
 
-    // Creating obstacles
+    // map[y][x]
+    int map[50][70];
 
+    // Creating obstacles
     int x, y;
-    for (x = 10; x < 50; x ++) {
-        if (rand() % 5 == 0) mvvline(10, x, HI, LINES / 5);
+    for (x = 5; x < 70; x ++) {
+      for (y = 2; y < 50; y ++) {
+        if (rand() % 9 == 0) {
+          map[y][x] = -2;
+          mvvline(y, x, HI, 1);
+        }
+        else map[y][x] = 10 + (rand() % 50);
+      }
     }
 
 }
