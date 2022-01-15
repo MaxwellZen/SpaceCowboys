@@ -28,6 +28,17 @@ void game_setup() {
     // map[y][x]
     int map[down + 1][right + 1];
 
+    // Creating obstacles
+    for (x = left; x < right; x ++) {
+      for (y = up; y < down; y ++) {
+        if (rand() % 9 == 0) {
+          map[y][x] = -2;
+          mvvline(y, x, OBSTACLE, 1);
+        }
+        else map[y][x] = 10 + (rand() % 50);
+      }
+    }
+
     for (y = up; y < down; y ++) {
       mvvline(y, left, BORDER, 1);
       mvvline(y, right, BORDER, 1);
