@@ -12,6 +12,7 @@ int seeker;
 int isseeker[4];
 
 void process(int i);
+void gamesetup();
 
 void phase1(int i);
 void phase2(int i);
@@ -60,6 +61,7 @@ int main() {
 		if (f) {
 			for (int i = 0; i < 4; i++) close(fds[i]);
 		} else {
+			gamesetup();
 			// do game stuff
 			exit(0);
 		}
@@ -73,6 +75,21 @@ void process(int i) {
 	else if (phase[i]==3) phase3(i);
 	else if (phase[i]==4) phase4(i);
 	else if (phase[i]==5) phase5(i);
+}
+void gamesetup() {
+	// create seeker info
+	for (int i = 0; i < 4; i++) isseeker[i] = 0;
+	seeker = rand()%4;
+	isseeker[seeker] = 1;
+	// create map
+	for (int i = 0; i < width; i++) map[0][i] = map[height-1][i] = -1;
+	for (int i = 0; i < height; i++) map[i][0] = map[i][width-1] = -1;
+	for (int i = 1; i < height-1; i++) {
+		for (int j = 1; j < width-1; j++) {
+			map[i][j] = 50 + (rand() % 30);
+			if (rand()%9 == 0) map[i][j] = -2;
+		}
+	}
 }
 
 
@@ -92,22 +109,11 @@ void phase3(int i) {
 	// write game index
 	write(fds[i], &i, sizeof(int));
 	// write seeker info
-	for (int i = 0; i < 4; i++) isseeker[i] = 0;
-	seeker = rand()%4;
-	isseeker[seeker] = 1;
 	write(fds[i], isseeker, 4*sizeof(int));
 	// write height and width
 	write(fds[i], &height, sizeof(int));
 	write(fds[i], &width, sizeof(int));
 	// write map
-	for (int i = 0; i < width; i++) map[0][i] = map[height-1][i] = -1;
-	for (int i = 0; i < height; i++) map[i][0] = map[i][width-1] = -1;
-	for (int i = 1; i < height-1; i++) {
-		for (int j = 1; j < width-1; j++) {
-			map[i][j] = 50 + (rand() % 30);
-			if (rand()%9 == 0) map[i][j] = -2;
-		}
-	}
 	write(fds[i], map, sizeof(map));
 }
 void phase4(int i) {
