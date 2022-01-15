@@ -1,59 +1,4 @@
-// #include "networking.h"
-#include <curses.h>
-#include <time.h>
-#include <stdlib.h>
-#include <string.h>
-
-#define OBSTACLE '@'
-#define BORDER '#'
-
-void game_setup() {
-    initscr();
-    keypad(stdscr, TRUE);
-    cbreak();
-    noecho();
-    clear();
-
-    srand( time(NULL) );
-
-    // Creating border
-    int x, y;
-    int up, down, left, right;
-
-    up = 0;
-    down = 25;
-    left = 2;
-    right = 65;
-
-    // map[y][x]
-    int map[down + 1][right + 1];
-
-    // Creating obstacles
-    for (x = left; x < right; x ++) {
-      for (y = up; y < down; y ++) {
-        if (rand() % 9 == 0) {
-          map[y][x] = -2;
-          mvvline(y, x, OBSTACLE, 1);
-        }
-        else map[y][x] = 10 + (rand() % 50);
-      }
-    }
-
-    for (y = up; y < down; y ++) {
-      mvvline(y, left, BORDER, 1);
-      mvvline(y, right, BORDER, 1);
-      map[y][left] = -1;
-      map[y][right] = -1;
-    }
-
-    for (x = left; x <= right; x ++) {
-      mvvline(up, x, BORDER, 1);
-      mvvline(down, x, BORDER, 1);
-      map[up][x] = -1;
-      map[down][x] = -1;
-    }
-
-}
+#include "game.h"
 
 int main() {
     // connect to server
@@ -106,4 +51,53 @@ int main() {
     // }
 
     return 0;
+}
+
+
+void game_setup() {
+    initscr();
+    keypad(stdscr, TRUE);
+    cbreak();
+    noecho();
+    clear();
+
+    srand( time(NULL) );
+
+    // Creating border
+    int x, y;
+    int up, down, left, right;
+
+    up = 0;
+    down = 25;
+    left = 2;
+    right = 65;
+
+    // map[y][x]
+    int map[down + 1][right + 1];
+
+    // Creating obstacles
+    for (x = left; x < right; x ++) {
+      for (y = up; y < down; y ++) {
+        if (rand() % 9 == 0) {
+          map[y][x] = -2;
+          mvvline(y, x, OBSTACLE, 1);
+        }
+        else map[y][x] = 10 + (rand() % 50);
+      }
+    }
+
+    for (y = up; y < down; y ++) {
+      mvvline(y, left, BORDER, 1);
+      mvvline(y, right, BORDER, 1);
+      map[y][left] = -1;
+      map[y][right] = -1;
+    }
+
+    for (x = left; x <= right; x ++) {
+      mvvline(up, x, BORDER, 1);
+      mvvline(down, x, BORDER, 1);
+      map[up][x] = -1;
+      map[down][x] = -1;
+    }
+
 }

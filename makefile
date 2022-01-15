@@ -1,5 +1,5 @@
 all: networking.o game.o server.o
-	gcc -o game game.o networking.o -lncurses
+	gcc -o game game.c networking.o -lncurses
 	gcc -o server server.o networking.o
 
 run:
@@ -8,7 +8,7 @@ run:
 clean:
 	rm *.o
 
-game.o: game.c networking.h networking.o
+game.o: game.c game.h networking.o
 	gcc -c game.c -lncurses
 
 server.o: server.c networking.h networking.o
