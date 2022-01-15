@@ -3,7 +3,8 @@
 #include <time.h>
 #include <stdlib.h>
 
-#define HI '@'
+#define OBSTACLE '@'
+#define BORDER '#'
 
 void game_setup() {
     initscr();
@@ -17,13 +18,33 @@ void game_setup() {
     // map[y][x]
     int map[50][70];
 
-    // Creating obstacles
+
+    // Creating border
     int x, y;
-    for (x = 5; x < 70; x ++) {
-      for (y = 2; y < 50; y ++) {
+    // Dimensions of the rectangle map: up, down, left, right
+    int up, down, left, right;
+
+    up = 0;
+    down = 25;
+    left = 2;
+    right = 65;
+
+    for (y = up; y < down; y ++) {
+      mvvline(y, left, BORDER, 1);
+      mvvline(y, right, BORDER, 1);
+    }
+
+    for (x = left; x <= right; x ++) {
+      mvvline(up, x, BORDER, 1);
+      mvvline(down, x, BORDER, 1);
+    }
+
+    // Creating obstacles
+    for (x = left; x < right; x ++) {
+      for (y = up; y < down; y ++) {
         if (rand() % 9 == 0) {
           map[y][x] = -2;
-          mvvline(y, x, HI, 1);
+          mvvline(y, x, OBSTACLE, 1);
         }
         else map[y][x] = 10 + (rand() % 50);
       }
