@@ -43,8 +43,8 @@ void game_setup() {
     }
 
     // Creating obstacles
-    for (x = left; x < right; x ++) {
-      for (y = up; y < down; y ++) {
+    for (x = left + 1; x < right; x ++) {
+      for (y = up + 1; y < down; y ++) {
         if (rand() % 9 == 0) {
           map[y][x] = -2;
           mvvline(y, x, OBSTACLE, 1);
@@ -59,7 +59,7 @@ int main() {
     // connect to server
     // int fd = ;
     // while (1) {
-        int phase = 1; //read phase
+        int phase = 3; //read phase
         if (phase==1) {
           char line[20];
 
