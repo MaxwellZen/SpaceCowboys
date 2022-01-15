@@ -2,6 +2,13 @@
 
 int main() {
     // connect to server
+    int to_server, from_server;
+    int game_index;
+    int players[4];
+    int width, height;
+    int *map;
+    int floor_type;
+    from_server = client_handshake( &to_server );
     // int fd = ;
     // while (1) {
         int phase = 3; //read phase
@@ -32,19 +39,41 @@ int main() {
     //
     //     }
         else if (phase==3) {
+          read(from_server, &game_index, sizeof(int));  
+          read(from_server, players, sizeof(players));
+          read(from_server, &width, sizeof(int));  
+          read(from_server, &height, sizeof(int));
+          read(from_server, map, sizeof(map));
+          read(from_server, &floor_type, sizeof(int));
+        }
+        else if (phase==4) {
           game_setup();
+          int pos[2];
+          int x, y;
+          read(from_server, pos, sizeof(pos));
           refresh();
           char ch = getch();
           while (ch != 'q') {
+            if (ch == KEY_LEFT) {
+              x = 0;
+              y = -1;
+            } else if (ch == KEY_RIGHT) {
+              x = 0;
+              y = 1;
+            } else if (ch == KEY_UP) {
+              x = -1;
+              y = 0;
+            } else if (ch == KEY_DOWN) {
+              x = 1;
+              y = 0;
+            }
           }
-
-          // Restores terminal, exits game
-          endwin();
-          exit(0);
+          if (ch == 'q') {
+            // Restores terminal, exits game
+            endwin();
+            exit(0);
+          }
         }
-    //     else if (phase==4) {
-    //
-    //     }
     //     else if (phase==5) {
     //
     //     }
