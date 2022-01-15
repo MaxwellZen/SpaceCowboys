@@ -2,6 +2,8 @@
 
 int fds[4];
 int phase[4];
+char names[4][21];
+int found;
 
 void process(int i);
 
@@ -14,10 +16,13 @@ void phase5(int i);
 int main() {
     int listener = server_setup();
     while (1) {
-        for (int i = 0; i < 4; i++) phase[i] = 0;
+        for (int i = 0; i < 4; i++) {
+            phase[i] = 0;
+            names[i][0] = 0;
+        }
         fd_set read_fds;
         int max_descriptor = listener;
-        int found = 0;
+        found = 0;
 
         while (1) {
             FD_ZERO(&read_fds);
@@ -37,6 +42,7 @@ int main() {
                 fds[found] = server_connect(listener);
                 if (fds[found] > max_descriptor) max_descriptor = fds[found];
                 phase[found] = 1;
+                strcpy(names[found], "Setting username...");
                 found++;
                 printf("Found %d clients\n", found);
             }
@@ -67,7 +73,10 @@ void phase1(int i) {
 
 }
 void phase2(int i) {
-
+    int x = 2;
+    write(fds[i], &x, sizeof(int));
+    write(fds[i], &found, sizeof(int));
+    write(fds[i], names, 4*21*sizeof(char));
 }
 void phase3(int i) {
 
