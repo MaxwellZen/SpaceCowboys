@@ -3,6 +3,7 @@
 #include <time.h>
 #include <stdlib.h>
 
+#define HI  	  '@'
 
 void game_setup() {
     initscr();
@@ -11,9 +12,14 @@ void game_setup() {
     noecho();
     clear();
 
-    // srand( time(NULL) );
+    srand( time(NULL) );
 
+    // Creating obstacles
 
+    int x, y;
+    for (x = 10; x < 50; x ++) {
+        if (rand() % 5 == 0) mvvline(10, x, HI, LINES / 5);
+    }
 
 }
 
@@ -38,10 +44,14 @@ int main() {
     //
     //     }
     // }
-    char ch = getch();
+
     game_setup();
+    refresh();
+    char ch = getch();
     while (ch != 'q') {
     }
+
+    // Restores terminal, exits game
     endwin();
     exit(0);
 
