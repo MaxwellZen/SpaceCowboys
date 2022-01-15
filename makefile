@@ -8,8 +8,8 @@ run:
 clean:
 	rm *.o
 
-game.o: game.c networking.h networking.o
-	gcc -c game.c -lncurses
+game.o: game.c game.h networking.o
+	gcc -c game.c
 
 server.o: server.c networking.h networking.o
 	gcc -c server.c
