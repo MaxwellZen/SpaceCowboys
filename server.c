@@ -4,6 +4,12 @@ int fds[4];
 int phase[4];
 char names[4][21];
 int found;
+const int height = 30, width = 120;
+int map[height][width];
+float pos[4][2];
+int ipos[4][2];
+int seeker;
+int isseeker[4];
 
 void process(int i);
 
@@ -14,6 +20,7 @@ void phase4(int i);
 void phase5(int i);
 
 int main() {
+    srand(time(NULL));
     int listener = server_setup();
     while (1) {
         for (int i = 0; i < 4; i++) {
@@ -76,10 +83,32 @@ void phase2(int i) {
     int x = 2;
     write(fds[i], &x, sizeof(int));
     write(fds[i], &found, sizeof(int));
-    write(fds[i], names, 4*21*sizeof(char));
+    write(fds[i], names, sizeof(names));
 }
 void phase3(int i) {
-
+    // write phase
+    int x = 3;
+    write(fds[i], &x, sizeof(int));
+    // write game index
+    write(fds[i], &i, sizeof(int));
+    // write seeker info
+    for (int i = 0; i < 4; i++) isseeker[i] = 0;
+    seeker = rand()%4;
+    isseeker[seeker] = 1;
+    write(fds[i], isseeker, 4*sizeof(int));
+    // write height and width
+    write(fds[i], &height, sizeof(int));
+    write(fds[i], &width, sizeof(int));
+    // write map
+    for (int i = 0; i < width; i++) map[0][i] = map[height-1][i] = -1;
+    for (int i = 0; i < height; i++) map[i][0] = map[i][width-1] = -1;
+    for (int i = 1; i < height-1; i++) {
+        for (int j = 1; j < width-1; j++) {
+            map[i][j] = 50 + (rand() % 30);
+            if (rand()%9 == 0) map[i][j] = -2;
+        }
+    }
+    write(fds[i], map, sizeof(map));
 }
 void phase4(int i) {
 
