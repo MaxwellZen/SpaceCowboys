@@ -28,6 +28,17 @@ void game_setup() {
     // map[y][x]
     int map[down + 1][right + 1];
 
+    // Creating obstacles
+    for (x = left; x < right; x ++) {
+      for (y = up; y < down; y ++) {
+        if (rand() % 9 == 0) {
+          map[y][x] = -2;
+          mvvline(y, x, OBSTACLE, 1);
+        }
+        else map[y][x] = 10 + (rand() % 50);
+      }
+    }
+
     for (y = up; y < down; y ++) {
       mvvline(y, left, BORDER, 1);
       mvvline(y, right, BORDER, 1);
@@ -42,24 +53,13 @@ void game_setup() {
       map[down][x] = -1;
     }
 
-    // Creating obstacles
-    for (x = left; x < right; x ++) {
-      for (y = up; y < down; y ++) {
-        if (rand() % 9 == 0) {
-          map[y][x] = -2;
-          mvvline(y, x, OBSTACLE, 1);
-        }
-        else map[y][x] = 10 + (rand() % 50);
-      }
-    }
-
 }
 
 int main() {
     // connect to server
     // int fd = ;
     // while (1) {
-        int phase = 1; //read phase
+        int phase = 3; //read phase
         if (phase==1) {
           char line[20];
 
