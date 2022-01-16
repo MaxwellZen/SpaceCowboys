@@ -157,7 +157,8 @@ void game_display() {
 			}
 		}
 	}
-	mvaddch(pos[game_index][0], pos[game_index][1], 'O');
+	for (int i = 0; i < 4; i++) if (players[i]) mvaddch(pos[i][0], pos[i][1], 'X'); else mvaddch(pos[i][0], pos[i][1], 'O');
+	// mvaddch(pos[game_index][0], pos[game_index][1], 'O');
 }
 
 
