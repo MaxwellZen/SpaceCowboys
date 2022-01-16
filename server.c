@@ -80,13 +80,9 @@ int main() {
 			for (int i = 0; i < 4; i++) phase[i]=3;
 			gamesetup();
 			for (int i = 0; i < 4; i++) phase3(i);
-			while (1) {
+			while (phase[0]==4) {
 				usleep(50000);
-				for (int i = 0; i < 4; i++) {
-					printf("%d, %d\n", ipos[i][0], ipos[i][1]);
-				}
 				phase4();
-				// for (int i = 0; i < 4; i++) process(i);
 			}
 			exit(0);
 		}
@@ -165,9 +161,11 @@ void phase3(int i) {
 	phase[i] = 4;
 }
 void phase4() {
+	int currenttime = time(NULL) - starttime;
 	for (int i = 0; i < 4; i++) {
 		writeint(fds[i], 4);
 		write(fds[i], ipos, 4*2*sizeof(int));
+		writeint(fds[i], currenttime);
 	}
 	for (int i = 0; i < 4; i++) {
 		int dx, dy;
@@ -259,6 +257,7 @@ void load_usernames() {
 void add_username(char * line) {
 	int file = open("users.txt", O_WRONLY | O_APPEND);
 	write(file, line, strlen(line));
+	write(file, "\n", 1);
 	write(file, "0\n", 2);
 	close(file);
 }

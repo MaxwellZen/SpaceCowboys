@@ -159,7 +159,12 @@ void game_display() {
 			}
 		}
 	}
-	for (int i = 0; i < 4; i++) if (players[i]) mvaddch(pos[i][0], pos[i][1], 'X'); else mvaddch(pos[i][0], pos[i][1], 'O');
+	for (int i = 0; i < 4; i++) {
+		if (pow(pos[i][0]-pos[game_index][0],2)+pow(pos[i][1]-pos[game_index][1],2) < radius) {
+			if (players[i]) mvaddch(pos[i][0], pos[i][1], 'X');
+			else mvaddch(pos[i][0], pos[i][1], 'O');
+		}
+	}
 	// mvaddch(pos[game_index][0], pos[game_index][1], 'O');
 	// display time
 	move(0, 0);
