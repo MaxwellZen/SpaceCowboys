@@ -11,6 +11,7 @@ char names[4][namelen+1];
 int pos[4][2];
 int currenttime;
 int timedied[4];
+double flashlight[2];
 
 int main() {
 	// connect to server
@@ -62,6 +63,7 @@ int main() {
 			read(sd, &game_index, sizeof(int));
 			read(sd, players, 4*sizeof(int));
 			read(sd, map, height*width*sizeof(int));
+			flashlight[0] = 0; flashlight[1] = 2;
 		}
 		else if (phase==4) {
 			printf("\e[?25l");
@@ -81,13 +83,15 @@ int main() {
                 else if (ch == KEY_RIGHT) dy++;
                 else if (ch == KEY_UP) dx--;
                 else if (ch == KEY_DOWN) dx++;
-                else if (ch == 'q') endwin();
+				else if (ch == 'z') {flashlight[0] -= 0.5; flashlight[1] -= 0.5;}
+				else if (ch == 'x') {flashlight[0] += 0.5; flashlight[1] += 0.5;}
 			}
 			write(sd, &dx, sizeof(int));
 			write(sd, &dy, sizeof(int));
 		}
 	    else if (phase==5) {
 			endwin();
+			printf("\e[?25h");
 			read(sd, timedied, 4*sizeof(int));
 			char winner[] = "Seeker";
 			for (int i = 1; i < 4; i ++) {
@@ -113,7 +117,7 @@ int main() {
 
 void get_username_mode() {
 	printf(YEL BRIGHT REV "%s %s   Hide & Seek   %s %s\n\n" RESET, hider, seeker, seeker, hider);
-	printf(YEL "Welcome Screen! [Explain instructions]\n\n" RESET);
+	printf(YEL "Welcome to SPACE COWBOYS!! \n\n" RESET);
 	printf(GRN "Type 'Login' or 'Create Account': " RESET);
 	fgets(line, 1000, stdin);
 	while (strcmp(line, "Login\n") && strcmp(line, "Create Account\n")) {
@@ -150,6 +154,20 @@ void game_setup() {
 	// for (int i = 1; i < height-1; i++) for (int j = 1; j < width-1; j++) if (rand()%9==0) map[i][j]=-2; else map[i][j] = rand()%10;
 }
 
+int in_radius(double x, double y) {
+	x -= pos[game_index][0];
+	y -= pos[game_index][1];
+	y /= 2;
+	return pow(x,2)+pow(y,2) <= pow(radius,2);
+}
+
+int in_flashlight(double x, double y) {
+	x -= pos[game_index][0];
+	y -= pos[game_index][1];
+	y /= 2;
+	return x*cos(flashlight[0]) >= y*sin(flashlight[0]) && x*cos(flashlight[1]) >= y*sin(flashlight[1]);
+}
+
 void game_display() {
 	// Creating border
 	int x, y;
@@ -162,7 +180,7 @@ void game_display() {
 	// Creating obstacles
 	for (x = 0; x < height; x ++) {
 		for (y = 0; y < width; y ++) {
-			if (pow(x-pos[game_index][0],2)+pow(y-pos[game_index][1],2)/2 < pow(radius,2)) {
+			if (in_radius(x, y) && in_flashlight(x, y)) {
 				if (map[x][y]==-2) {
 					attron(COLOR_PAIR(1));
 					mvvline(x, y, OBSTACLE, 1);
@@ -179,7 +197,7 @@ void game_display() {
 		}
 	}
 	for (int i = 0; i < 4; i++) {
-		if (pow(pos[i][0]-pos[game_index][0],2)+pow(pos[i][1]-pos[game_index][1],2)/2 < pow(radius, 2)) {
+		if (in_radius(pos[i][0], pos[i][1]) && in_flashlight(pos[i][0], pos[i][1])) {
 			if (players[i]) mvaddch(pos[i][0], pos[i][1], 'X');
 			else mvaddch(pos[i][0], pos[i][1], 'O');
 		}
