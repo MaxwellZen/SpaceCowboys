@@ -2,6 +2,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 
 #define OBSTACLE '@'
 #define BORDER '#'
@@ -27,3 +28,4 @@ void get_username_mode();
 void get_username();
 void game_setup();
 void game_display();
+void INThandler(int sig);
