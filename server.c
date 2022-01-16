@@ -1,5 +1,6 @@
 #include "networking.h"
 
+int listener;
 int fds[4];
 int phase[4];
 char names[4][21];
@@ -25,10 +26,13 @@ void phase5();
 struct user * arr;
 
 int main() {
+
+	signal(SIGINT, INThandler);
 	srand(time(NULL));
-	int listener = server_setup();
+	listener = server_setup();
 	while (1) {
 		for (int i = 0; i < 4; i++) {
+			fds[i] = 0;
 			phase[i] = 0;
 			strcpy(names[i], "Waiting...");
 		}
@@ -61,7 +65,10 @@ int main() {
 
 		int f = fork();
 		if (f) {
-			for (int i = 0; i < 4; i++) close(fds[i]);
+			for (int i = 0; i < 4; i++) {
+				close(fds[i]);
+				fds[i] = 0;
+			}
 		} else {
 			found = 0;
 			for (int i = 0; i < 4; i++) {
@@ -210,6 +217,7 @@ void phase5() {
 		writeint(fds[i], 5);
 		write(fds[i], timedied, 4*sizeof(int));
 		close(fds[i]);
+		fds[i] = 0;
 	}
 }
 
@@ -284,4 +292,12 @@ int check_username(char * line, int n) {
 	// 	if (val == 1) printf("Username already exists\n");
 	// 	else add_username(line);
 	// }
+}
+
+
+
+void INThandler(int sig) {
+	close(listener);
+	for (int i = 0; i < 4; i++) if (fds[i]) close(fds[i]);
+	exit(0);
 }

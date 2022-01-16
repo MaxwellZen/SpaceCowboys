@@ -16,7 +16,7 @@ double flashlight[2];
 int main() {
 	// connect to server
 	sd = client_handshake();
-	printf("%d\n", sd);
+	// printf("%d\n", sd);
 	if (sd==-1) {
 		printf("Connection failed\n");
 		exit(0);
@@ -107,6 +107,7 @@ int main() {
 				if (timedied[i] != -1) printf("Player %d: %d seconds\n", i, timedied[i]);
 				else printf("Player %d: SURVIVED\n", i);
 			}
+			close(sd);
 			exit(0);
 	    }
 	}
@@ -224,5 +225,6 @@ void game_display() {
 void INThandler(int sig) {
 	printf("\e[?25h");
 	endwin();
+	close(sd);
 	exit(0);
 }
