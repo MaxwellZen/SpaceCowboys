@@ -4,7 +4,6 @@ int fds[4];
 int phase[4];
 char names[4][21];
 int found;
-const int height = 30, width = 120;
 int map[height][width];
 float pos[4][2];
 int ipos[4][2];
@@ -110,9 +109,6 @@ void phase3(int i) {
 	write(fds[i], &i, sizeof(int));
 	// write seeker info
 	write(fds[i], isseeker, 4*sizeof(int));
-	// write height and width
-	write(fds[i], &height, sizeof(int));
-	write(fds[i], &width, sizeof(int));
 	// write map
 	write(fds[i], map, sizeof(map));
 }

@@ -16,6 +16,9 @@
 #ifndef NETWORKING_H
 #define NETWORKING_H
 
+#define height 30
+#define width 120
+
 //for forking server
 int server_setup();
 int server_connect(int from_client);
