@@ -141,18 +141,20 @@ void game_display() {
 	// Creating obstacles
 	for (x = 0; x < height; x ++) {
 		for (y = 0; y < width; y ++) {
-			if (map[x][y]==-2) {
-				attron(COLOR_PAIR(1));
-				mvvline(x, y, OBSTACLE, 1);
-				attroff(COLOR_PAIR(1));
+			if (pow(x-pos[game_index][0],2)+pow(y-pos[game_index][1],2) < radius) {
+				if (map[x][y]==-2) {
+					attron(COLOR_PAIR(1));
+					mvvline(x, y, OBSTACLE, 1);
+					attroff(COLOR_PAIR(1));
+				}
+				else if (map[x][y]==-1) {
+					attron(COLOR_PAIR(2));
+					mvvline(x, y, BORDER, 1);
+					attroff(COLOR_PAIR(2));
+				}
+				else if (map[x][y]%2==0) mvvline(x, y, FLOOR1, 1);
+				else mvvline(x, y, FLOOR2, 1);
 			}
-			else if (map[x][y]==-1) {
-				attron(COLOR_PAIR(2));
-				mvvline(x, y, BORDER, 1);
-				attroff(COLOR_PAIR(2));
-			}
-			else if (map[x][y]%2==0) mvvline(x, y, FLOOR1, 1);
-			else mvvline(x, y, FLOOR2, 1);
 		}
 	}
 	mvaddch(pos[game_index][0], pos[game_index][1], 'O');
