@@ -154,7 +154,7 @@ void game_display() {
 	for (x = 0; x < height; x ++) {
 		for (y = 0; y < width; y ++) {
 			if (map[x][y]==-2) mvvline(x, y, OBSTACLE, 1);
-			else if (map[x][y]==-2) mvvline(x, y, BORDER, 1);
+			else if (map[x][y]==-1) mvvline(x, y, BORDER, 1);
 			else if (map[x][y]%2==0) mvvline(x, y, FLOOR1, 1);
 			else mvvline(x, y, FLOOR2, 1);
 		}
