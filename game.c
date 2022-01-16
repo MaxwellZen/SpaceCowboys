@@ -52,18 +52,12 @@ int main() {
 			read(sd, pos, sizeof(pos));
 			game_setup();
 			refresh();
-<<<<<<< HEAD
 			int y = 1, x = 3;
 			int py = 1, px = 3;
-=======
-			int x = 0, y = 0;
-            mvaddch(y, x, 'P');
->>>>>>> b69320bcee8b11f30adc2f03840ec6792cf2cf97
 			int ch;
 			char ghost[] = "\U0001F47B";
 			char s[] = { 0xf0, 0x9f, 0x98, 0x8e, 0};
 			while ((ch = getch()) != ERR) {
-<<<<<<< HEAD
 				if (ch == KEY_LEFT) {
 					x -= 1;
 					px = x+1;
@@ -84,12 +78,6 @@ int main() {
 					px = x;
 					py = y-1;
 				}
-=======
-				if (ch == KEY_LEFT) y -= 1;
-                else if (ch == KEY_RIGHT) y += 1;
-                else if (ch == KEY_UP) x -= 1;
-                else if (ch == KEY_DOWN) x += 1;
->>>>>>> b69320bcee8b11f30adc2f03840ec6792cf2cf97
                 else if (ch == 'q') {
 					// Restores terminal, exits game
 					endwin();
