@@ -1,7 +1,7 @@
 #include "game.h"
 #include "networking.h"
 
-int sd;
+int sd, to_server;
 int game_index;
 int players[4];
 int map[height][width];
@@ -11,16 +11,17 @@ char names[4][namelen+1];
 
 int main() {
 	// connect to server
-	sd = client_handshake();
+	sd = client_handshake(&to_server);
 	// ncurses setup
 	nodelay(stdscr, TRUE);
 
-	get_username_mode();
-	printf("username_mode: %d", username_mode);
+	//get_username_mode();
+	//printf("username_mode: %d", username_mode);
 	
-	while (1) {
+	//while (1) {
 		int phase;
-		read(sd, &phase, sizeof(int));
+		//read(sd, &phase, sizeof(int));
+		phase = 4;
 		printf("Phase: %d\n", phase);
 		if (phase==1) {
 			get_username();
@@ -51,6 +52,7 @@ int main() {
 			int pos[4][2];
 			read(sd, pos, sizeof(pos));
 			game_setup();
+			game_display();
 			refresh();
 			int y = 1, x = 3;
 			int py = 1, px = 3;
@@ -86,16 +88,16 @@ int main() {
 				mvaddch(y, x, 'O');
 				move(y, x);
 			}
-			write(sd, &x, sizeof(int));
-			write(sd, &y, sizeof(int));
+			write(to_server, &x, sizeof(int));
+			write(to_server, &y, sizeof(int));
 		}
 	//     else if (phase==5) {
 	//
 	//     }
 	}
 
-	return 0;
-}
+	//return 0;
+//}
 
 void get_username_mode() {
 	printf("Hide & Seek\nWelcome Screen! Blah Blah\n");
@@ -128,7 +130,6 @@ void game_setup() {
 	cbreak();
 	noecho();
 	clear();
-
 	srand( time(NULL) );
 }
 
