@@ -9,6 +9,9 @@ float pos[4][2];
 int ipos[4][2];
 int seeker;
 int isseeker[4];
+int alive[4];
+int timedied[4];
+time_t starttime;
 
 void process(int i);
 void gamesetup();
@@ -83,6 +86,8 @@ void gamesetup() {
 	for (int i = 0; i < 4; i++) isseeker[i] = 0;
 	seeker = rand()%4;
 	isseeker[seeker] = 1;
+	for (int i = 0; i < 4; i++) alive[i] = 1;
+	starttime = time(NULL);
 	// create map
 	for (int i = 0; i < width; i++) map[0][i] = map[height-1][i] = -1;
 	for (int i = 0; i < height; i++) map[i][0] = map[i][width-1] = -1;
@@ -99,23 +104,22 @@ void gamesetup() {
 		map[ipos[i][0]][ipos[i][1]] = 50 + (rand() % 30);
 	}
 }
+void writeint(int fd, int x) {
+	write(fd, &x, sizeof(int));
+}
 
 
 void phase1(int i) {
 
 }
 void phase2(int i) {
-	int x = 2;
-	write(fds[i], &x, sizeof(int));
-	write(fds[i], &found, sizeof(int));
+	writeint(fds[i], 2);
+	writeint(fds[i], found);
 	write(fds[i], names, sizeof(names));
 }
 void phase3(int i) {
-	// write phase
-	int x = 3;
-	write(fds[i], &x, sizeof(int));
-	// write game index
-	write(fds[i], &i, sizeof(int));
+	writeint(fds[i], 3);
+	writeint(fds[i], i);
 	// write seeker info
 	write(fds[i], isseeker, 4*sizeof(int));
 	// write map
@@ -129,20 +133,36 @@ void phase4(int i) {
 		float nx, ny;
 		if (isseeker[i]) {
 			nx = pos[i][0] + 1.5*dx;
-			ny = pox[i][1] + 1.5*dy;
+			ny = pos[i][1] + 1.5*dy;
 		} else {
 			nx = pos[i][0] + 1.0*dx;
 			ny = pos[i][1] + 1.0*dy;
 		}
 		int change = 1;
 		int inx = nx, iny = ny;
-		if (inx<1 || inx>height-2 || iny<1 || iny>width-2) change = 0;
+		if (nx<1 || nx>height-2 || ny<1 || ny>width-2) change = 0;
 		if (map[inx][iny]==-2 || map[inx+1][iny]==-2 || map[inx][iny+1]==-2 || map[inx+1][iny+1]==-2) change = 0;
 		if (change) {
 			pos[i][0] = nx;
 			pos[i][1] = ny;
 			ipos[i][0] = inx;
 			ipos[i][1] = iny;
+		}
+	}
+	for (int i = 0; i < 4; i++) if (i != seeker && alive[i]) {
+		if (hypot(pos[i][0]-pos[seeker][0], pos[i][1]-pos[seeker][1]) <= 1) {
+			alive[i]=0;
+			timedied[i] = time(NULL) - starttime;
+		}
+	}
+	for (int i = 0; i < 4; i++) {
+		writeint(fds[i], 4);
+		if (alive[i]) {
+			writeint(fds[i], ipos[i][0]);
+			writeint(fds[i], ipos[i][1]);
+		} else {
+			writeint(fds[i], -1);
+			writeint(fds[i], -1);
 		}
 	}
 }

@@ -3,11 +3,11 @@
 
 int main() {
     // connect to server
-    int to_server, from_server;
+    int sd;
     int game_index;
     int players[4];
     int map[height][width];
-    from_server = client_handshake( &to_server );
+    sd = client_handshake();
     // int fd = ;
     // while (1) {
         int phase = 3; //read phase
@@ -38,15 +38,15 @@ int main() {
     //
     //     }
         else if (phase==3) {
-          read(from_server, &game_index, sizeof(int));
-          read(from_server, players, sizeof(players));
-          read(from_server, map, sizeof(map));
+          read(sd, &game_index, sizeof(int));
+          read(sd, players, sizeof(players));
+          read(sd, map, sizeof(map));
         }
         else if (phase==4) {
           game_setup();
           int pos[2];
           int x, y;
-          read(from_server, pos, sizeof(pos));
+          read(sd, pos, sizeof(pos));
           refresh();
           int ch = getch();
           while (ch != 'q') {
@@ -64,8 +64,8 @@ int main() {
               y = 0;
             }
           }
-          write(to_server, &x, sizeof(int));
-          write(to_server, &y, sizeof(int));
+          write(sd, &x, sizeof(int));
+          write(sd, &y, sizeof(int));
           if (ch == 'q') {
             // Restores terminal, exits game
             endwin();
