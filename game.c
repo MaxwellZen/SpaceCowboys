@@ -159,17 +159,32 @@ void game_display() {
 	// Creating border
 	int x, y;
 
+	// Adding color
+	start_color();
+    init_pair(1, COLOR_BLACK, COLOR_GREEN);
+	init_pair(2, COLOR_YELLOW, COLOR_BLACK);
+
 	// Creating obstacles
 	for (x = 0; x < height; x ++) {
 		for (y = 0; y < width; y ++) {
-			if (map[x][y]==-2) mvvline(x, y, OBSTACLE, 1);
-			else if (map[x][y]==-1) mvvline(x, y, BORDER, 1);
+			if (map[x][y]==-2) {
+				attron(COLOR_PAIR(1));
+				mvvline(x, y, OBSTACLE, 1);
+				attroff(COLOR_PAIR(1));
+			}
+			else if (map[x][y]==-1) {
+				attron(COLOR_PAIR(2));
+				mvvline(x, y, BORDER, 1);
+				attroff(COLOR_PAIR(2));
+			}
 			else if (map[x][y]%2==0) mvvline(x, y, FLOOR1, 1);
 			else mvvline(x, y, FLOOR2, 1);
 		}
 	}
 	mvaddch(pos[game_index][0], pos[game_index][1], 'O');
 }
+
+
 
 void INThandler(int sig) {
 	printf("\e[?25h");
