@@ -22,6 +22,7 @@ void phase2();
 void phase3(int i);
 void phase4();
 void phase5();
+void INThandler(int sig);
 
 struct user * arr;
 
