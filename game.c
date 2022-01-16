@@ -15,14 +15,14 @@ int main() {
 	// ncurses setup
 	nodelay(stdscr, TRUE);
 
-	get_username_mode();
-	printf("username_mode: %d", username_mode);
+	//get_username_mode();
+	//printf("username_mode: %d", username_mode);
 
-	while (1) {
+	//while (1) {
 		int phase;
 		//read(sd, &phase, sizeof(int));
 		phase = 4;
-		printf("Phase: %d\n", phase);
+		//printf("Phase: %d\n", phase);
 		if (phase==1) {
 			get_username();
 			writeint(sd, 1);
@@ -96,8 +96,8 @@ int main() {
 	//     }
 	}
 
-	return 0;
-}
+	//return 0;
+//}
 
 void get_username_mode() {
 	printf(YEL BRIGHT REV "%s %s   Hide & Seek   %s %s\n\n" RESET, hider, seeker, seeker, hider);
