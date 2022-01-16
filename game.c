@@ -14,6 +14,9 @@ int main() {
 	sd = client_handshake(&to_server);
 	// ncurses setup
 	nodelay(stdscr, TRUE);
+	// Bring cursor back, checking for control c
+	// printf("\e[?25h");
+	signal(SIGINT, INThandler);
 
 	get_username_mode();
 	printf("username_mode: %d", username_mode);
@@ -24,6 +27,7 @@ int main() {
 		phase = 4;
 		printf("Phase: %d\n", phase);
 		if (phase==1) {
+			printf("\e[?25h");
 			get_username();
 			writeint(sd, 1);
 			writeint(sd, username_mode);
@@ -37,6 +41,7 @@ int main() {
 			}
 		}
 		else if (phase==2) {
+			printf("\e[?25h");
 			for (int i = 0; i < 4; i++) read(sd, names[i], (namelen+1) * sizeof(char));
 			printf("Waiting Room:\n");
 			for (int i = 0; i < 4; i++) {
@@ -44,6 +49,7 @@ int main() {
 			}
 		}
 		else if (phase==3) {
+			printf("\e[?25h");
 			read(sd, &game_index, sizeof(int));
 			read(sd, players, sizeof(players));
 			read(sd, map, sizeof(map));
@@ -87,10 +93,12 @@ int main() {
 				}
 				mvaddch(py, px, ' ');
 				mvaddch(y, x, 'O');
+				// mvaddch(y, x, hider);
 				move(y, x);
 			}
 			write(to_server, &x, sizeof(int));
 			write(to_server, &y, sizeof(int));
+			printf("\e[?25h");
 		}
 	//     else if (phase==5) {
 	//
@@ -148,4 +156,10 @@ void game_display() {
 			else mvvline(x, y, FLOOR2, 1);
 		}
 	}
+}
+
+void INThandler(int sig) {
+	printf("\e[?25h");
+	endwin();
+	exit(0);
 }
