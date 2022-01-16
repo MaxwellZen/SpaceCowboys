@@ -61,7 +61,10 @@ int main() {
 			for (int i = 0; i < 4; i++) close(fds[i]);
 		} else {
 			gamesetup();
-			// do game stuff
+			while (1) {
+				usleep(50000);
+				for (int i = 0; i < 4; i++) process(i);
+			}
 			exit(0);
 		}
 	}
@@ -89,6 +92,12 @@ void gamesetup() {
 			if (rand()%9 == 0) map[i][j] = -2;
 		}
 	}
+	for (int i = 0; i < 4; i++) {
+		pos[i][0] = 3; pos[i][1] = 3;
+		if (i&1) pos[i][0] = height - 4;
+		if (i&2) pos[i][1] = width - 4;
+		map[ipos[i][0]][ipos[i][1]] = 50 + (rand() % 30);
+	}
 }
 
 
@@ -113,7 +122,29 @@ void phase3(int i) {
 	write(fds[i], map, sizeof(map));
 }
 void phase4(int i) {
-
+	for (int i = 0; i < 4; i++) {
+		int dx, dy;
+		read(fds[i], &dx, sizeof(int));
+		read(fds[i], &dy, sizeof(int));
+		float nx, ny;
+		if (isseeker[i]) {
+			nx = pos[i][0] + 1.5*dx;
+			ny = pox[i][1] + 1.5*dy;
+		} else {
+			nx = pos[i][0] + 1.0*dx;
+			ny = pos[i][1] + 1.0*dy;
+		}
+		int change = 1;
+		int inx = nx, iny = ny;
+		if (inx<1 || inx>height-2 || iny<1 || iny>width-2) change = 0;
+		if (map[inx][iny]==-2 || map[inx+1][iny]==-2 || map[inx][iny+1]==-2 || map[inx+1][iny+1]==-2) change = 0;
+		if (change) {
+			pos[i][0] = nx;
+			pos[i][1] = ny;
+			ipos[i][0] = inx;
+			ipos[i][1] = iny;
+		}
+	}
 }
 void phase5(int i) {
 

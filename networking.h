@@ -11,7 +11,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <curses.h>
-#include <time.h>
+#include <math.h>
 
 #ifndef NETWORKING_H
 #define NETWORKING_H
