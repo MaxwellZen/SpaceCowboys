@@ -15,7 +15,7 @@ int main() {
 	// ncurses setup
 	nodelay(stdscr, TRUE);
 	// Bring cursor back, checking for control c
-	// printf("\e[?25h");
+	printf("\e[?25h");
 	signal(SIGINT, INThandler);
 
 	//get_username_mode();
