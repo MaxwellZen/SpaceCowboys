@@ -7,4 +7,5 @@
 #define BORDER '#'
 
 int main();
+void get_username();
 void game_setup();

@@ -10,28 +10,9 @@ int main() {
     sd = client_handshake();
     // int fd = ;
     // while (1) {
-        int phase = 3; //read phase
+        int phase = 1; //read phase
         if (phase==1) {
-          char line[20];
-
-          printf("Hide & Seek\nWelcome Screen! Blah Blah\n");
-          printf("Type 'Login' or 'Create Account': ");
-
-          while(fgets(line, 20, stdin)) {
-            if (strcmp(line, "Login\n") == 0) {
-              printf("\nUsername: ");
-              fgets(line, 20, stdin);
-            }
-            else if (strcmp(line, "Create Account\n") == 0) {
-              printf("\nNew Username: ");
-              fgets(line, 20, stdin);
-            }
-            else {
-              printf("Invalid command\n");
-              printf("Type 'Login' or 'Create Account': ");
-            }
-          }
-          // Check if username is valid.. at users.txt?
+          get_username();
           phase = 2; // if username is valid
         }
     //     else if (phase==2) {
@@ -80,6 +61,35 @@ int main() {
     return 0;
 }
 
+void get_username() {
+  char line[100];
+
+  printf("Hide & Seek\nWelcome Screen! Blah Blah\n");
+  printf("Type 'Login' or 'Create Account': ");
+
+  while(fgets(line, 100, stdin)) {
+    if (strcmp(line, "Login\n") == 0) {
+      printf("\nUsername: ");
+      fgets(line, 100, stdin);
+      check_username(line, 0);
+      // if (check_username(line) == -1) {
+      //   printf("Username does not exist\nUsername: ");
+      // }
+    }
+    else if (strcmp(line, "Create Account\n") == 0) {
+      printf("\nNew Username: ");
+      fgets(line, 100, stdin);
+      check_username(line, 1);
+      // if (check_username(line) == -1) {
+        // add_username(line);
+      // }
+    }
+    else {
+      printf("Invalid command\n");
+      printf("Type 'Login' or 'Create Account': ");
+    }
+  }
+}
 
 void game_setup() {
     initscr();
@@ -126,5 +136,4 @@ void game_setup() {
       map[up][x] = -1;
       map[down][x] = -1;
     }
-
 }

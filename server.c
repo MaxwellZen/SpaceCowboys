@@ -22,6 +22,8 @@ void phase3(int i);
 void phase4(int i);
 void phase5(int i);
 
+struct user * arr;
+
 int main() {
 	srand(time(NULL));
 	int listener = server_setup();
@@ -168,4 +170,73 @@ void phase4(int i) {
 }
 void phase5(int i) {
 
+}
+
+
+
+// Login Stuff
+struct user{
+	char username[20];
+	int games;
+};
+
+long long filesize(char * name) {
+  struct stat stats;
+  stat(name, &stats);
+  return stats.st_size;
+}
+
+void load_usernames() {
+  int file = open("users.txt", O_RDONLY);
+  int len = filesize("users.txt");
+  char * data = malloc((len + 1) * sizeof(char));
+  int result = read(file, data, sizeof(data));
+  data[len] = 0;
+
+  int i, j = 0;
+  int lines = 0;
+  for (i = 0; i < sizeof(data); i ++) {
+    if (data[i] == '\n') lines += 1;
+  }
+
+  int file1 = open("user.txt", O_RDONLY);
+  arr = calloc(lines / 2, sizeof(struct user));
+
+  for (i = 0; i < lines / 2; i ++) {
+    char * temp = strsep(&data, "\n");
+    strcpy(arr[i].username, temp);
+    temp = strsep(&data, "\n");
+    sscanf(temp, "%d", &arr[i].games);
+    // printf("%s %d\n", arr[i].username, arr[i].games);
+  }
+}
+
+void add_username(char * line) {
+	int file = open("users.txt", O_WRONLY);
+	write(file, line, sizeof(line));
+	write(file, "0\n", 2);
+}
+
+int user_exists(char * line) {
+	if (line[sizeof(line) - 2] == '\n') line[sizeof(line - 2)] = '\0';
+	load_usernames();
+	int i = 0;
+	for (i = 0; i < sizeof(arr); i ++) {
+		if (strcmp(arr[i].username, line) == 0) return 1;
+	}
+	return 0;
+}
+
+void check_username(char * line, int n) {
+	int val = user_exists(line);
+	// Login
+	if (n == 0) {
+		if (val == 1) printf("Login successful");
+		else printf("Username does not exist\n");
+	}
+	// Create Account
+	else {
+		if (val == 1) printf("Username already exists\n");
+		else add_username(line);
+	}
 }
