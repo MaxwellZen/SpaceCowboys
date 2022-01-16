@@ -11,6 +11,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <math.h>
+#include <signal.h>
 
 #ifndef NETWORKING_H
 #define NETWORKING_H
