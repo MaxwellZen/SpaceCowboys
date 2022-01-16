@@ -40,7 +40,7 @@ int main() {
 			write(sd, line, 21 * sizeof(char));
 			int result = 696969;
 			read(sd, &result, sizeof(int));
-			printf("Results: %d\n", result);
+			// printf("Results: %d\n", result);
 			if (result==0) {
 				if (username_mode==LOGIN) printf("Username does not exist\n");
 				else if (username_mode==CREATE) printf("Username already exists\n");
