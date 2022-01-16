@@ -174,24 +174,36 @@ void phase4() {
 		read(fds[i], &dx, sizeof(int));
 		read(fds[i], &dy, sizeof(int));
 		if (alive[i]) {
-			float nx, ny;
-			if (isseeker[i]) {
-				nx = pos[i][0] + 1.5*dx;
-				ny = pos[i][1] + 1.5*dy;
-			} else {
-				nx = pos[i][0] + 1.0*dx;
-				ny = pos[i][1] + 1.0*dy;
-			}
+			int nx = ipos[i][0] + dx;
+			int ny = ipos[i][1] + dy;
 			int change = 1;
 			int inx = nx, iny = ny;
 			if (nx<1 || nx>height-2 || ny<1 || ny>width-2) change = 0;
-			if (map[inx][iny]==-2 || map[inx+1][iny]==-2 || map[inx][iny+1]==-2 || map[inx+1][iny+1]==-2) change = 0;
+			if (map[inx][iny]==-2) change = 0;
 			if (change) {
 				pos[i][0] = nx;
 				pos[i][1] = ny;
 				ipos[i][0] = inx;
 				ipos[i][1] = iny;
 			}
+			// float nx, ny;
+			// if (isseeker[i]) {
+			// 	nx = pos[i][0] + 1.5*dx;
+			// 	ny = pos[i][1] + 1.5*dy;
+			// } else {
+			// 	nx = pos[i][0] + 1.0*dx;
+			// 	ny = pos[i][1] + 1.0*dy;
+			// }
+			// int change = 1;
+			// int inx = nx, iny = ny;
+			// if (nx<1 || nx>height-2 || ny<1 || ny>width-2) change = 0;
+			// if (map[inx][iny]==-2 || map[inx+1][iny]==-2 || map[inx][iny+1]==-2 || map[inx+1][iny+1]==-2) change = 0;
+			// if (change) {
+			// 	pos[i][0] = nx;
+			// 	pos[i][1] = ny;
+			// 	ipos[i][0] = inx;
+			// 	ipos[i][1] = iny;
+			// }
 		}
 	}
 	for (int i = 0; i < 4; i++) if (i != seeker && alive[i]) {
