@@ -10,6 +10,7 @@ int username_mode;
 char names[4][namelen+1];
 int pos[4][2];
 int currenttime;
+int timedied[4];
 
 int main() {
 	// connect to server
@@ -84,9 +85,24 @@ int main() {
 			write(sd, &dx, sizeof(int));
 			write(sd, &dy, sizeof(int));
 		}
-	//     else if (phase==5) {
-	//
-	//     }
+	    else if (phase==5) {
+			read(sd, timedied, 4*sizeof(int));
+			char winner[] = "Seeker";
+			for (int i = 1; i < 4; i ++) {
+				if (timedied[i] == -1) strcpy(winner, "Hiders");
+			}
+
+			printf(YEL BRIGHT REV "Game Over! The %s won!\n\n" RESET, winner);
+			printf(GRN "Stats: \n" RESET);
+
+			if (strcmp(winner, "Seeker") == 0) printf("Player 0 (Seeker): LOST\n");
+			else printf("Player 0 (Seeker): WON\n");
+
+			for (int i = 1; i < 4; i ++) {
+				if (timedied[i] != -1) printf("Player %d: %d seconds\n", i, timedied[i]);
+				else printf("Player %d: SURVIVED\n", i);
+			}
+	    }
 	}
 
 	return 0;

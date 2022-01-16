@@ -20,7 +20,7 @@ void phase1(int i);
 void phase2();
 void phase3(int i);
 void phase4();
-void phase5(int i);
+void phase5();
 
 struct user * arr;
 
@@ -84,6 +84,7 @@ int main() {
 				usleep(50000);
 				phase4();
 			}
+			phase5();
 			exit(0);
 		}
 	}
@@ -164,6 +165,7 @@ void phase3(int i) {
 void phase4() {
 	int currenttime = time(NULL) - starttime;
 	if (currenttime > gametime) {
+		printf("%d %d\n", currenttime, gametime);
 		for (int i = 0; i < 4; i++) phase[i]=5;
 		return;
 	}
@@ -189,24 +191,6 @@ void phase4() {
 				ipos[i][0] = inx;
 				ipos[i][1] = iny;
 			}
-			// float nx, ny;
-			// if (isseeker[i]) {
-			// 	nx = pos[i][0] + 1.5*dx;
-			// 	ny = pos[i][1] + 1.5*dy;
-			// } else {
-			// 	nx = pos[i][0] + 1.0*dx;
-			// 	ny = pos[i][1] + 1.0*dy;
-			// }
-			// int change = 1;
-			// int inx = nx, iny = ny;
-			// if (nx<1 || nx>height-2 || ny<1 || ny>width-2) change = 0;
-			// if (map[inx][iny]==-2 || map[inx+1][iny]==-2 || map[inx][iny+1]==-2 || map[inx+1][iny+1]==-2) change = 0;
-			// if (change) {
-			// 	pos[i][0] = nx;
-			// 	pos[i][1] = ny;
-			// 	ipos[i][0] = inx;
-			// 	ipos[i][1] = iny;
-			// }
 		}
 	}
 	for (int i = 0; i < 4; i ++) timedied[i] = -1;
@@ -219,21 +203,11 @@ void phase4() {
 		}
 	}
 }
-void phase5(int i) {
-	char winner[] = "Seeker";
-	for (int i = 1; i < 4; i ++) {
-		if (timedied[i] == -1) strcpy(winner, "Hiders");
-	}
-
-	printf(YEL BRIGHT REV "Game Over! The %s won!\n\n" RESET, winner);
-	printf(GRN "Stats: \n" RESET);
-
-	if (strcmp(winner, "Seeker") == 0) printf("Player 0 (Seeker): LOST\n");
-	else printf("Player 0 (Seeker): WON\n");
-
-	for (int i = 1; i < 4; i ++) {
-		if (timedied[i] != -1) printf("Player %d: %d seconds\n", i, timedied[i]);
-		else printf("Player %d: SURVIVED\n", i);
+void phase5() {
+	for (int i = 0; i < 4; i++) {
+		writeint(fds[i], 5);
+		write(fds[i], timedied, 4*sizeof(int));
+		close(fds[i]);
 	}
 }
 
