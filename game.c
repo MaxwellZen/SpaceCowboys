@@ -17,7 +17,7 @@ int main() {
 
 	get_username_mode();
 	printf("username_mode: %d", username_mode);
-	
+
 	while (1) {
 		int phase;
 		read(sd, &phase, sizeof(int));
@@ -68,7 +68,7 @@ int main() {
 					px = x-1;
 					py = y;
 				}
-                else if (ch == KEY_UP) { 
+                else if (ch == KEY_UP) {
 					y -= 1;
 					px = x;
 					py = y+1;
@@ -98,8 +98,9 @@ int main() {
 }
 
 void get_username_mode() {
-	printf("Hide & Seek\nWelcome Screen! Blah Blah\n");
-	printf("Type 'Login' or 'Create Account': ");
+	printf(YEL BRIGHT REV "%s %s   Hide & Seek   %s %s\n\n" RESET, hider, seeker, seeker, hider);
+	printf(YEL "Welcome Screen! [Explain instructions]\n\n" RESET);
+	printf(GRN "Type 'Login' or 'Create Account': " RESET);
 	fgets(line, 1000, stdin);
 	while (strcmp(line, "Login\n") && strcmp(line, "Create Account\n")) {
 		printf("Invalid command\n");
