@@ -97,8 +97,8 @@ int main() {
 			printf(YEL BRIGHT REV "Game Over! The %s won!\n\n" RESET, winner);
 			printf(GRN "Stats: \n" RESET);
 
-			if (strcmp(winner, "Seeker") == 0) printf("Player 0 (Seeker): LOST\n");
-			else printf("Player 0 (Seeker): WON\n");
+			if (strcmp(winner, "Seeker") == 0) printf("Player 0 (Seeker): WON\n");
+			else printf("Player 0 (Seeker): LOST\n");
 
 			for (int i = 1; i < 4; i ++) {
 				if (timedied[i] != -1) printf("Player %d: %d seconds\n", i, timedied[i]);

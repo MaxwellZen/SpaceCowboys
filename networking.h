@@ -19,7 +19,7 @@
 #define width 80
 #define radius 6
 #define namelen 20
-#define gametime 40
+#define gametime 60
 #define LOGIN 0
 #define CREATE 1
 
