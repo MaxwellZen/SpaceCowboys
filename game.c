@@ -1,4 +1,5 @@
 #include "game.h"
+#include "networking.h"
 
 int main() {
     // connect to server
@@ -68,6 +69,8 @@ int main() {
               y = 0;
             }
           }
+          write(to_server, x, sizeof(int));
+          write(to_server, y, sizeof(int));
           if (ch == 'q') {
             // Restores terminal, exits game
             endwin();
