@@ -179,34 +179,34 @@ struct user{
 };
 
 long long filesize(char * name) {
-  struct stat stats;
-  stat(name, &stats);
-  return stats.st_size;
+	struct stat stats;
+	stat(name, &stats);
+	return stats.st_size;
 }
 
 void load_usernames() {
-  int file = open("users.txt", O_RDONLY);
-  int len = filesize("users.txt");
-  char * data = malloc((len + 1) * sizeof(char));
-  int result = read(file, data, sizeof(data));
-  data[len] = 0;
+	int file = open("users.txt", O_RDONLY);
+	int len = filesize("users.txt");
+	char * data = malloc((len + 1) * sizeof(char));
+	int result = read(file, data, sizeof(data));
+	data[len] = 0;
 
-  int i, j = 0;
-  int lines = 0;
-  for (i = 0; i < sizeof(data); i ++) {
-    if (data[i] == '\n') lines += 1;
-  }
+	int i, j = 0;
+	int lines = 0;
+	for (i = 0; i < sizeof(data); i ++) {
+		if (data[i] == '\n') lines += 1;
+	}
 
-  int file1 = open("user.txt", O_RDONLY);
-  arr = calloc(lines / 2, sizeof(struct user));
+	int file1 = open("user.txt", O_RDONLY);
+	arr = calloc(lines / 2, sizeof(struct user));
 
-  for (i = 0; i < lines / 2; i ++) {
-    char * temp = strsep(&data, "\n");
-    strcpy(arr[i].username, temp);
-    temp = strsep(&data, "\n");
-    sscanf(temp, "%d", &arr[i].games);
-    // printf("%s %d\n", arr[i].username, arr[i].games);
-  }
+	for (i = 0; i < lines / 2; i ++) {
+		char * temp = strsep(&data, "\n");
+		strcpy(arr[i].username, temp);
+		temp = strsep(&data, "\n");
+		sscanf(temp, "%d", &arr[i].games);
+		// printf("%s %d\n", arr[i].username, arr[i].games);
+	}
 }
 
 void add_username(char * line) {
