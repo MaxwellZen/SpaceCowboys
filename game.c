@@ -44,6 +44,8 @@ int main() {
 			if (result==0) {
 				if (username_mode==LOGIN) printf("Username does not exist\n");
 				else if (username_mode==CREATE) printf("Username already exists\n");
+			} else {
+				printf("Waiting for users...\n");
 			}
 		}
 		else if (phase==2) {
@@ -51,7 +53,6 @@ int main() {
 			for (int i = 0; i < 4; i++) for (int j = 0; j < 21; j++) read(sd, &names[i][j], sizeof(char));
 			// for (int i = 0; i < 4; i++) read(sd, names[i], (namelen+1) * sizeof(char));
 			// printf("Waiting Room:\n");
-			printf("Waiting for users\n");
 			// for (int i = 0; i < 4; i++) {
 			// 	printf("[%s]\n", names[i]);
 			// }
