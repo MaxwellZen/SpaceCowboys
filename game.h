@@ -6,8 +6,8 @@
 
 #define OBSTACLE '@'
 #define BORDER '#'
-#define FLOOR1 '-'
-#define FLOOR2 '_'
+#define FLOOR1 ' '
+#define FLOOR2 ' '
 
 char seeker[] = {0xF0, 0x9F, 0x9B, 0xB8, '\0'};
 char hider[] = {0xF0, 0x9F, 0x90, 0x84, '\0'};
