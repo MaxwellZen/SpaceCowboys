@@ -16,8 +16,8 @@
 #ifndef NETWORKING_H
 #define NETWORKING_H
 
-#define height 30
-#define width 120
+#define height 15
+#define width 60
 #define namelen 20
 #define LOGIN 0
 #define CREATE 1
