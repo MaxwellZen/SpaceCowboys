@@ -203,13 +203,19 @@ void game_display() {
 	}
 	// mvaddch(pos[game_index][0], pos[game_index][1], 'O');
 	// display time
-	move(0, 0);
+	move(0, 2);
 	printw("Time Left: %d s", gametime - currenttime);
 	char id[20];
 	if (players[game_index]) strcpy(id, "You are a SEEKER");
 	else if (pos[game_index][0]==-1) strcpy(id, "You are DEAD");
 	else strcpy(id, "You are a HIDER");
 	move(height-1, (width - strlen(id)) / 2);
+	printw("%s", id);
+	id[0] = 0;
+	int alive = 0;
+	for (int i = 0; i < 4; i++) if (pos[i][0] != -1) alive++;
+	sprintf(id, "%d Hiders Left", alive-1);
+	move(0, 65);
 	printw("%s", id);
 }
 
