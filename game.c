@@ -141,7 +141,7 @@ void game_display() {
 	// Creating obstacles
 	for (x = 0; x < height; x ++) {
 		for (y = 0; y < width; y ++) {
-			if (pow(x-pos[game_index][0],2)+pow(y-pos[game_index][1],2) < radius) {
+			if (pow(x-pos[game_index][0],2)+pow(y-pos[game_index][1],2) < pow(radius,2)) {
 				if (map[x][y]==-2) {
 					attron(COLOR_PAIR(1));
 					mvvline(x, y, OBSTACLE, 1);
