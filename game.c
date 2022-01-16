@@ -9,6 +9,8 @@ int map[height][width];
 int main() {
     // connect to server
     sd = client_handshake();
+	// ncurses setup
+	nodelay(stdscr, TRUE);
     while (1) {
 		int phase;
 		read(sd, &phase, sizeof(int));
@@ -24,13 +26,13 @@ int main() {
           read(sd, map, sizeof(map));
         }
         else if (phase==4) {
+		  int pos[4][2];
+		  read(sd, pos, sizeof(pos));
           game_setup();
-          int pos[4][2];
-          int x, y;
-          read(sd, pos, sizeof(pos));
           refresh();
-          int ch = getch();
-          while (ch != 'q') {
+          int x, y;
+		  int ch;
+		  while ((ch = getch()) != ERR) {
             if (ch == KEY_LEFT) {
               x = 0;
               y = -1;
@@ -43,15 +45,14 @@ int main() {
             } else if (ch == KEY_DOWN) {
               x = 1;
               y = 0;
+		  	} else if (ch == 'q') {
+              // Restores terminal, exits game
+              endwin();
+              exit(0);
             }
-          }
+		  }
           write(sd, &x, sizeof(int));
           write(sd, &y, sizeof(int));
-          if (ch == 'q') {
-            // Restores terminal, exits game
-            endwin();
-            exit(0);
-          }
         }
     //     else if (phase==5) {
     //
