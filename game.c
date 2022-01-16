@@ -1,7 +1,7 @@
 #include "game.h"
 #include "networking.h"
 
-int sd, to_server;
+int sd;
 int game_index;
 int players[4];
 int map[height][width];
@@ -11,23 +11,27 @@ char names[4][namelen+1];
 
 int main() {
 	// connect to server
-	sd = client_handshake(&to_server);
+	sd = client_handshake();
+	printf("%d\n", sd);
+	if (sd==-1) {
+		printf("Connection failed\n");
+		exit(0);
+	}
 	// ncurses setup
 	nodelay(stdscr, TRUE);
 
-	//get_username_mode();
-	//printf("username_mode: %d", username_mode);
+	get_username_mode();
+	printf("username_mode: %d", username_mode);
 
-	//while (1) {
+	while (1) {
 		int phase;
-		//read(sd, &phase, sizeof(int));
-		phase = 4;
-		//printf("Phase: %d\n", phase);
+		read(sd, &phase, sizeof(int));
+		printf("Phase: %d\n", phase);
 		if (phase==1) {
 			get_username();
 			writeint(sd, 1);
 			writeint(sd, username_mode);
-			write(sd, line, (namelen+1) * sizeof(char));
+			write(sd, line, 21 * sizeof(char));
 			int result = 696969;
 			read(sd, &result, sizeof(int));
 			printf("Results: %d\n", result);
@@ -37,16 +41,18 @@ int main() {
 			}
 		}
 		else if (phase==2) {
-			for (int i = 0; i < 4; i++) read(sd, names[i], (namelen+1) * sizeof(char));
-			printf("Waiting Room:\n");
-			for (int i = 0; i < 4; i++) {
-				printf("%s\n", names[i]);
-			}
+			for (int i = 0; i < 4; i++) for (int j = 0; j < 21; j++) read(sd, &names[i][j], sizeof(char));
+			// for (int i = 0; i < 4; i++) read(sd, names[i], (namelen+1) * sizeof(char));
+			// printf("Waiting Room:\n");
+			printf("Waiting for users\n");
+			// for (int i = 0; i < 4; i++) {
+			// 	printf("[%s]\n", names[i]);
+			// }
 		}
 		else if (phase==3) {
 			read(sd, &game_index, sizeof(int));
-			read(sd, players, sizeof(players));
-			read(sd, map, sizeof(map));
+			read(sd, players, 4*sizeof(int));
+			read(sd, map, height*width*sizeof(int));
 		}
 		else if (phase==4) {
 			printf("\e[?25l");
@@ -89,16 +95,16 @@ int main() {
 				mvaddch(y, x, 'O');
 				move(y, x);
 			}
-			write(to_server, &x, sizeof(int));
-			write(to_server, &y, sizeof(int));
+			write(sd, &x, sizeof(int));
+			write(sd, &y, sizeof(int));
 		}
 	//     else if (phase==5) {
 	//
 	//     }
 	}
 
-	//return 0;
-//}
+	return 0;
+}
 
 void get_username_mode() {
 	printf(YEL BRIGHT REV "%s %s   Hide & Seek   %s %s\n\n" RESET, hider, seeker, seeker, hider);

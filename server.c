@@ -43,11 +43,8 @@ int main() {
 			select(max_descriptor+1, &read_fds, NULL, NULL, NULL);
 			for (int i = 0; i < found; i++) {
 				if (FD_ISSET(fds[i], &read_fds)) {
-					int g = fork();
-					if (!g) {
-						process(i);
-						exit(0);
-					}
+					printf("Processing %d\n", i);
+					process(i);
 				}
 			}
 			if (FD_ISSET(listener, &read_fds)) {
@@ -83,7 +80,7 @@ int main() {
 			gamesetup();
 			for (int i = 0; i < 4; i++) phase[i]=3;
 			while (1) {
-				usleep(50000);
+				// usleep(50000);
 				for (int i = 0; i < 4; i++) process(i);
 			}
 			exit(0);
@@ -116,10 +113,14 @@ void gamesetup() {
 		}
 	}
 	for (int i = 0; i < 4; i++) {
-		pos[i][0] = 3; pos[i][1] = 3;
-		if (i&1) pos[i][0] = height - 4;
-		if (i&2) pos[i][1] = width - 4;
+		ipos[i][0] = pos[i][0] = 3; ipos[i][1] = pos[i][1] = 3;
+		if (i&1) ipos[i][0] = pos[i][0] = height - 4;
+		if (i&2) ipos[i][1] = pos[i][1] = width - 4;
 		map[ipos[i][0]][ipos[i][1]] = 50 + (rand() % 30);
+	}
+	for (int i = 0; i < 4; i++) {
+		writeint(fds[i], 4);
+		write(fds[i], ipos, 4*2*sizeof(int));
 	}
 }
 
@@ -144,19 +145,22 @@ void phase1(int i) {
 	}
 }
 void phase2() {
+	printf("Phase 2 names: \n");
+	for (int i = 0; i < 4; i++) printf("[%s]\n", names[i]);
 	for (int i = 0; i < 4; i++) if (phase[i]==2) {
 		writeint(fds[i], 2);
 		writeint(fds[i], found);
-		for (int j = 0; j < 4; j++) write(fds[i], names[j], sizeof(char));
+		for (int j = 0; j < 4; j++) for (int k = 0; k < 21; k++) write(fds[i], &names[j][k], sizeof(char));
 	}
 }
 void phase3(int i) {
+	printf("sending phase 3 info to %d\n", i);
 	writeint(fds[i], 3);
 	writeint(fds[i], i);
 	// write seeker info
 	write(fds[i], isseeker, 4*sizeof(int));
 	// write map
-	write(fds[i], map, sizeof(map));
+	write(fds[i], map, height*width*sizeof(int));
 	phase[i] = 4;
 }
 void phase4(int i) {
