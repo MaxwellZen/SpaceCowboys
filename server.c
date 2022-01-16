@@ -19,7 +19,7 @@ void gamesetup();
 void phase1(int i);
 void phase2();
 void phase3(int i);
-void phase4(int i);
+void phase4();
 void phase5(int i);
 
 struct user * arr;
@@ -77,11 +77,16 @@ int main() {
 					printf("%d usernames set\n", found);
 				}
 			}
-			gamesetup();
 			for (int i = 0; i < 4; i++) phase[i]=3;
+			gamesetup();
+			for (int i = 0; i < 4; i++) phase3(i);
 			while (1) {
-				// usleep(50000);
-				for (int i = 0; i < 4; i++) process(i);
+				usleep(50000);
+				for (int i = 0; i < 4; i++) {
+					printf("%d, %d\n", ipos[i][0], ipos[i][1]);
+				}
+				phase4();
+				// for (int i = 0; i < 4; i++) process(i);
 			}
 			exit(0);
 		}
@@ -117,10 +122,6 @@ void gamesetup() {
 		if (i&1) ipos[i][0] = pos[i][0] = height - 4;
 		if (i&2) ipos[i][1] = pos[i][1] = width - 4;
 		map[ipos[i][0]][ipos[i][1]] = 50 + (rand() % 30);
-	}
-	for (int i = 0; i < 4; i++) {
-		writeint(fds[i], 4);
-		write(fds[i], ipos, 4*2*sizeof(int));
 	}
 }
 
@@ -163,29 +164,34 @@ void phase3(int i) {
 	write(fds[i], map, height*width*sizeof(int));
 	phase[i] = 4;
 }
-void phase4(int i) {
+void phase4() {
+	for (int i = 0; i < 4; i++) {
+		writeint(fds[i], 4);
+		write(fds[i], ipos, 4*2*sizeof(int));
+	}
 	for (int i = 0; i < 4; i++) {
 		int dx, dy;
 		read(fds[i], &dx, sizeof(int));
 		read(fds[i], &dy, sizeof(int));
-		if (!alive[i]) continue;
-		float nx, ny;
-		if (isseeker[i]) {
-			nx = pos[i][0] + 1.5*dx;
-			ny = pos[i][1] + 1.5*dy;
-		} else {
-			nx = pos[i][0] + 1.0*dx;
-			ny = pos[i][1] + 1.0*dy;
-		}
-		int change = 1;
-		int inx = nx, iny = ny;
-		if (nx<1 || nx>height-2 || ny<1 || ny>width-2) change = 0;
-		if (map[inx][iny]==-2 || map[inx+1][iny]==-2 || map[inx][iny+1]==-2 || map[inx+1][iny+1]==-2) change = 0;
-		if (change) {
-			pos[i][0] = nx;
-			pos[i][1] = ny;
-			ipos[i][0] = inx;
-			ipos[i][1] = iny;
+		if (alive[i]) {
+			float nx, ny;
+			if (isseeker[i]) {
+				nx = pos[i][0] + 1.5*dx;
+				ny = pos[i][1] + 1.5*dy;
+			} else {
+				nx = pos[i][0] + 1.0*dx;
+				ny = pos[i][1] + 1.0*dy;
+			}
+			int change = 1;
+			int inx = nx, iny = ny;
+			if (nx<1 || nx>height-2 || ny<1 || ny>width-2) change = 0;
+			if (map[inx][iny]==-2 || map[inx+1][iny]==-2 || map[inx][iny+1]==-2 || map[inx+1][iny+1]==-2) change = 0;
+			if (change) {
+				pos[i][0] = nx;
+				pos[i][1] = ny;
+				ipos[i][0] = inx;
+				ipos[i][1] = iny;
+			}
 		}
 	}
 	for (int i = 0; i < 4; i++) if (i != seeker && alive[i]) {
@@ -194,10 +200,6 @@ void phase4(int i) {
 			ipos[i][0] = ipos[i][1] = -1;
 			timedied[i] = time(NULL) - starttime;
 		}
-	}
-	for (int i = 0; i < 4; i++) {
-		writeint(fds[i], 4);
-		write(fds[i], ipos, sizeof(ipos));
 	}
 }
 void phase5(int i) {
