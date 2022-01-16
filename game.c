@@ -133,6 +133,9 @@ void game_setup() {
 	noecho();
 	clear();
 	srand( time(NULL) );
+	for (int i = 0; i < height; i++) map[i][0] = map[i][width-1] = -1;
+	for (int i = 0; i < width; i++) map[0][i] = map[height-1][i] = -1;
+	for (int i = 1; i < height-1; i++) for (int j = 1; j < width-1; j++) if (rand()%9==0) map[i][j]=-2; else map[i][j] = rand()%10;
 }
 
 void game_display() {
