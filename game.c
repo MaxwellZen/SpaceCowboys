@@ -86,10 +86,11 @@ int main() {
 			write(sd, &dy, sizeof(int));
 		}
 	    else if (phase==5) {
+			endwin();
 			read(sd, timedied, 4*sizeof(int));
 			char winner[] = "Seeker";
 			for (int i = 1; i < 4; i ++) {
-				if (timedied[i] == -1) strcpy(winner, "Hiders");
+				if (players[i]==0 && timedied[i] == -1) strcpy(winner, "Hiders");
 			}
 
 			printf(YEL BRIGHT REV "Game Over! The %s won!\n\n" RESET, winner);
@@ -102,6 +103,7 @@ int main() {
 				if (timedied[i] != -1) printf("Player %d: %d seconds\n", i, timedied[i]);
 				else printf("Player %d: SURVIVED\n", i);
 			}
+			exit(0);
 	    }
 	}
 

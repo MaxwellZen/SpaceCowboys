@@ -115,6 +115,7 @@ void gamesetup() {
 			if (rand()%9 == 0) map[i][j] = -2;
 		}
 	}
+	for (int i = 0; i < 4; i ++) timedied[i] = -1;
 	for (int i = 0; i < 4; i++) {
 		ipos[i][0] = pos[i][0] = 3; ipos[i][1] = pos[i][1] = 3;
 		if (i&1) ipos[i][0] = pos[i][0] = height - 4;
@@ -193,7 +194,6 @@ void phase4() {
 			}
 		}
 	}
-	for (int i = 0; i < 4; i ++) timedied[i] = -1;
 
 	for (int i = 0; i < 4; i++) if (i != seeker && alive[i]) {
 		if (abs(ipos[i][0]-ipos[seeker][0])+abs(ipos[i][1]-ipos[seeker][1]) <= 1) {
