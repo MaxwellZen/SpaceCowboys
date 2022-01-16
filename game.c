@@ -9,6 +9,7 @@ char line[1000];
 int username_mode;
 char names[4][namelen+1];
 int pos[4][2];
+int currenttime;
 
 int main() {
 	// connect to server
@@ -63,6 +64,7 @@ int main() {
 		else if (phase==4) {
 			printf("\e[?25l");
 			read(sd, pos, 4*2*sizeof(int));
+			read(sd, &currenttime, sizeof(int));
 			game_setup();
 			game_display();
 			refresh();
@@ -157,6 +159,9 @@ void game_display() {
 	}
 	for (int i = 0; i < 4; i++) if (players[i]) mvaddch(pos[i][0], pos[i][1], 'X'); else mvaddch(pos[i][0], pos[i][1], 'O');
 	// mvaddch(pos[game_index][0], pos[game_index][1], 'O');
+	// display time
+	move(0, 0);
+	printw("Time Left: %d s", gametime - currenttime);
 }
 
 

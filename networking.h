@@ -19,6 +19,7 @@
 #define height 15
 #define width 60
 #define namelen 20
+#define gametime 40
 #define LOGIN 0
 #define CREATE 1
 
