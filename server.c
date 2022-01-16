@@ -167,7 +167,7 @@ void phase4() {
 	int currenttime = time(NULL) - starttime;
 	int alivecount = 0;
 	for (int i = 0; i < 4; i++) if (alive[i]) alivecount++;
-	if (currenttime > gametime || alivecount==3) {
+	if (currenttime > gametime || alivecount==1) {
 		printf("%d %d\n", currenttime, gametime);
 		for (int i = 0; i < 4; i++) phase[i]=5;
 		return;
