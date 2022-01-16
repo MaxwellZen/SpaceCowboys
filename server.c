@@ -162,6 +162,10 @@ void phase3(int i) {
 }
 void phase4() {
 	int currenttime = time(NULL) - starttime;
+	if (currenttime > gametime) {
+		for (int i = 0; i < 4; i++) phase[i]=5;
+		return;
+	}
 	for (int i = 0; i < 4; i++) {
 		writeint(fds[i], 4);
 		write(fds[i], ipos, 4*2*sizeof(int));
