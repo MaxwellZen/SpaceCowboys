@@ -8,7 +8,7 @@ run:
 clean:
 	rm *.o
 
-server: server.o networking.o
+serverside: server.o networking.o
 	gcc -o server server.o networking.o
 
 game.o: game.c game.h networking.o
