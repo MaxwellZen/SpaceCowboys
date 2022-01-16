@@ -64,8 +64,8 @@ int main() {
               y = 0;
             }
           }
-          write(to_server, x, sizeof(int));
-          write(to_server, y, sizeof(int));
+          write(to_server, &x, sizeof(int));
+          write(to_server, &y, sizeof(int));
           if (ch == 'q') {
             // Restores terminal, exits game
             endwin();
