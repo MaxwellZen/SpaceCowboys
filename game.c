@@ -27,7 +27,6 @@ int main() {
 	signal(SIGINT, INThandler);
 
 	get_username_mode();
-	printf("username_mode: %d\n", username_mode);
 
 	while (1) {
 		int phase;
@@ -116,8 +115,8 @@ int main() {
 }
 
 void get_username_mode() {
-	printf(YEL BRIGHT REV "%s %s   Hide & Seek   %s %s\n\n" RESET, hider, seeker, seeker, hider);
-	printf(YEL "Welcome to SPACE COWBOYS!! \n\n" RESET);
+	printf(YEL BRIGHT REV "%s %s   SPACE COWBOYS   %s %s\n\n" RESET, hider, seeker, seeker, hider);
+	printf(YEL "Welcome!! Enter your information below. \n\n" RESET);
 	printf(GRN "Type 'Login' or 'Create Account': " RESET);
 	fgets(line, 1000, stdin);
 	while (strcmp(line, "Login\n") && strcmp(line, "Create Account\n")) {
@@ -180,7 +179,7 @@ void game_display() {
 	// Creating obstacles
 	for (x = 0; x < height; x ++) {
 		for (y = 0; y < width; y ++) {
-			if (in_radius(x, y) && in_flashlight(x, y)) {
+			if (pos[game_index][0]==-1 || (in_radius(x, y) && in_flashlight(x, y))) {
 				if (map[x][y]==-2) {
 					attron(COLOR_PAIR(1));
 					mvvline(x, y, OBSTACLE, 1);
@@ -197,7 +196,7 @@ void game_display() {
 		}
 	}
 	for (int i = 0; i < 4; i++) {
-		if (in_radius(pos[i][0], pos[i][1]) && in_flashlight(pos[i][0], pos[i][1])) {
+		if (pos[game_index][0]==-1 || (in_radius(pos[i][0], pos[i][1]) && in_flashlight(pos[i][0], pos[i][1]))) {
 			if (players[i]) mvaddch(pos[i][0], pos[i][1], 'X');
 			else mvaddch(pos[i][0], pos[i][1], 'O');
 		}
@@ -206,6 +205,12 @@ void game_display() {
 	// display time
 	move(0, 0);
 	printw("Time Left: %d s", gametime - currenttime);
+	char id[20];
+	if (players[game_index]) strcpy(id, "You are a SEEKER");
+	else if (pos[game_index][0]==-1) strcpy(id, "You are DEAD");
+	else strcpy(id, "You are a HIDER");
+	move(height-1, (width - strlen(id)) / 2);
+	printw("%s", id);
 }
 
 
