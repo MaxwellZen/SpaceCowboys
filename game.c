@@ -6,6 +6,8 @@ int game_index;
 int players[4];
 int map[height][width];
 char line[1000];
+int username_mode;
+char names[4][namelen+1];
 
 int main() {
 	// connect to server
@@ -13,23 +15,32 @@ int main() {
 	// ncurses setup
 	nodelay(stdscr, TRUE);
 
-	printf("Hide & Seek\nWelcome Screen! Blah Blah\n");
-	printf("Type 'Login' or 'Create Account': ");
-	fgets(line, 1000, stdin);
-	while (strcmp(line, "Login\n") && strcmp(line, "Create Account\n")) {
-		printf("Invalid command\n");
-		printf("Type 'Login' or 'Create Account': ");
-		fgets(line, 1000, stdin);
-	}
-
+	get_username_mode();
+	printf("username_mode: %d", username_mode);
+	
 	while (1) {
-		int phase = 4;
+		int phase;
 		read(sd, &phase, sizeof(int));
+		printf("Phase: %d\n", phase);
 		if (phase==1) {
 			get_username();
+			writeint(sd, 1);
+			writeint(sd, username_mode);
+			write(sd, line, (namelen+1) * sizeof(char));
+			int result = 696969;
+			read(sd, &result, sizeof(int));
+			printf("Results: %d\n", result);
+			if (result==0) {
+				if (username_mode==LOGIN) printf("Username does not exist\n");
+				else if (username_mode==CREATE) printf("Username already exists\n");
+			}
 		}
 		else if (phase==2) {
-
+			for (int i = 0; i < 4; i++) read(sd, names[i], (namelen+1) * sizeof(char));
+			printf("Waiting Room:\n");
+			for (int i = 0; i < 4; i++) {
+				printf("%s\n", names[i]);
+			}
 		}
 		else if (phase==3) {
 			read(sd, &game_index, sizeof(int));
@@ -66,17 +77,29 @@ int main() {
 	return 0;
 }
 
-void get_username() {
-	while(fgets(line, 1000, stdin)) {
-		if (strcmp(line, "Login\n") == 0) {
-			printf("\nUsername: ");
-			fgets(line, 1000, stdin);
-		}
-		else if (strcmp(line, "Create Account\n") == 0) {
-			printf("\nNew Username: ");
-			fgets(line, 1000, stdin);
-		}
+void get_username_mode() {
+	printf("Hide & Seek\nWelcome Screen! Blah Blah\n");
+	printf("Type 'Login' or 'Create Account': ");
+	fgets(line, 1000, stdin);
+	while (strcmp(line, "Login\n") && strcmp(line, "Create Account\n")) {
+		printf("Invalid command\n");
+		printf("Type 'Login' or 'Create Account': ");
+		fgets(line, 1000, stdin);
 	}
+	if (strcmp(line, "Login\n")==0) username_mode = LOGIN;
+	else username_mode = CREATE;
+}
+
+void get_username() {
+	do {
+		if (username_mode==LOGIN) printf("\nUsername: ");
+		else if (username_mode==CREATE) printf("\nNew Username: ");
+		fgets(line, 1000, stdin);
+		if (strlen(line)==1 || strlen(line)>21) {
+			printf("Username must be between 1 and 20 characters long\n");
+		}
+	} while (strlen(line)==1 || strlen(line)>21);
+	*strchr(line, '\n') = 0;
 }
 
 void game_setup() {

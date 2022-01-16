@@ -15,7 +15,6 @@ time_t starttime;
 
 void process(int i);
 void gamesetup();
-void writeint(int fd, int x) { write(fd, &x, sizeof(int)); }
 
 void phase1(int i);
 void phase2();
@@ -54,11 +53,11 @@ int main() {
 			if (FD_ISSET(listener, &read_fds)) {
 				fds[found] = server_connect(listener);
 				writeint(fds[found], 1);
-				writeint(fds[found], 0);
 				if (fds[found] > max_descriptor) max_descriptor = fds[found];
 				phase[found] = 1;
 				strcpy(names[found], "Setting username...");
 				found++;
+				phase2();
 				printf("Found %d clients\n", found);
 			}
 		}
@@ -68,18 +67,18 @@ int main() {
 			for (int i = 0; i < 4; i++) close(fds[i]);
 		} else {
 			found = 0;
-			max_descriptor = 0;
 			for (int i = 0; i < 4; i++) {
 				if (phase[i]==2) found++;
-				else if (fds[i]>max_descriptor) max_descriptor = fds[i];
 			}
 			while (found<4) {
 				FD_ZERO(&read_fds);
 				for (int i = 0; i < 4; i++) if (phase[i]==1) FD_SET(fds[i], &read_fds);
 				select(max_descriptor+1, &read_fds, NULL, NULL, NULL);
-				for (int i = 0; i < 4; i++) if (phase[i]==1 && FD_ISSET(fds[i], &read_fds)) process(i);
-				found = 0;
-				for (int i = 0; i < 4; i++) if (phase[i]==2) found++;
+				for (int i = 0; i < 4; i++) if (phase[i]==1 && FD_ISSET(fds[i], &read_fds)) {
+					process(i);
+					if (phase[i]==2) found++;
+					printf("%d usernames set\n", found);
+				}
 			}
 			gamesetup();
 			for (int i = 0; i < 4; i++) phase[i]=3;
@@ -124,17 +123,18 @@ void gamesetup() {
 	}
 }
 
-
 void phase1(int i) {
 	int x;
 	read(fds[i], &x, sizeof(int));
 	if (x==0) return;
 	int n;
 	read(fds[i], &n, sizeof(int));
-	char *line = malloc((namelen+1) * sizeof(char));
+	char line[namelen+1];
 	line[namelen]=0;
 	read(fds[i], line, (namelen+1) * sizeof(char));
 	if (check_username(line, n)) {
+		printf("Check successful\n");
+		writeint(fds[i], 1);
 		strcpy(names[i], line);
 		phase[i] = 2;
 		phase2();
@@ -147,7 +147,7 @@ void phase2() {
 	for (int i = 0; i < 4; i++) if (phase[i]==2) {
 		writeint(fds[i], 2);
 		writeint(fds[i], found);
-		write(fds[i], names, sizeof(names));
+		for (int j = 0; j < 4; j++) write(fds[i], names[j], sizeof(char));
 	}
 }
 void phase3(int i) {
@@ -227,7 +227,6 @@ void load_usernames() {
 		if (data[i] == '\n') lines += 1;
 	}
 
-	int file1 = open("user.txt", O_RDONLY);
 	arr = calloc(lines / 2, sizeof(struct user));
 
 	for (i = 0; i < lines / 2; i ++) {
@@ -240,13 +239,14 @@ void load_usernames() {
 }
 
 void add_username(char * line) {
-	int file = open("users.txt", O_WRONLY);
-	write(file, line, sizeof(line));
+	int file = open("users.txt", O_WRONLY | O_APPEND);
+	write(file, line, strlen(line));
 	write(file, "0\n", 2);
+	close(file);
 }
 
 int user_exists(char * line) {
-	if (line[strlen(line) - 2] == '\n') line[strlen(line) - 2] = '\0';
+	if (strchr(line, '\n')) *strchr(line, '\n') = 0;
 	load_usernames();
 	int i = 0;
 	for (i = 0; i < sizeof(arr); i ++) {
@@ -257,7 +257,8 @@ int user_exists(char * line) {
 
 int check_username(char * line, int n) {
 	int val = user_exists(line);
-	if (n==1 && val==0) add_username(line);
+	printf("[%s], val: %d, n: %d\n", line, val, n);
+	if (n==CREATE && val==0) add_username(line);
 	return val != n;
 	// // Login
 	// if (n == 0) {
