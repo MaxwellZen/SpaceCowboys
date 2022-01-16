@@ -19,6 +19,9 @@ int main() {
 	}
 	// ncurses setup
 	nodelay(stdscr, TRUE);
+	// Bring cursor back, checking for control c
+	printf("\e[?25h");
+	signal(SIGINT, INThandler);
 
 	get_username_mode();
 	printf("username_mode: %d", username_mode);
@@ -28,6 +31,7 @@ int main() {
 		read(sd, &phase, sizeof(int));
 		printf("Phase: %d\n", phase);
 		if (phase==1) {
+			printf("\e[?25h");
 			get_username();
 			writeint(sd, 1);
 			writeint(sd, username_mode);
@@ -50,6 +54,7 @@ int main() {
 			// }
 		}
 		else if (phase==3) {
+			printf("\e[?25h");
 			read(sd, &game_index, sizeof(int));
 			read(sd, players, 4*sizeof(int));
 			read(sd, map, height*width*sizeof(int));
@@ -93,6 +98,7 @@ int main() {
 				}
 				mvaddch(py, px, ' ');
 				mvaddch(y, x, 'O');
+				// mvaddch(y, x, hider);
 				move(y, x);
 			}
 			write(sd, &x, sizeof(int));
@@ -139,6 +145,9 @@ void game_setup() {
 	noecho();
 	clear();
 	srand( time(NULL) );
+	for (int i = 0; i < height; i++) map[i][0] = map[i][width-1] = -1;
+	for (int i = 0; i < width; i++) map[0][i] = map[height-1][i] = -1;
+	for (int i = 1; i < height-1; i++) for (int j = 1; j < width-1; j++) if (rand()%9==0) map[i][j]=-2; else map[i][j] = rand()%10;
 }
 
 void game_display() {
@@ -149,9 +158,15 @@ void game_display() {
 	for (x = 0; x < height; x ++) {
 		for (y = 0; y < width; y ++) {
 			if (map[x][y]==-2) mvvline(x, y, OBSTACLE, 1);
-			else if (map[x][y]==-2) mvvline(x, y, BORDER, 1);
+			else if (map[x][y]==-1) mvvline(x, y, BORDER, 1);
 			else if (map[x][y]%2==0) mvvline(x, y, FLOOR1, 1);
 			else mvvline(x, y, FLOOR2, 1);
 		}
 	}
+}
+
+void INThandler(int sig) {
+	printf("\e[?25h");
+	endwin();
+	exit(0);
 }
