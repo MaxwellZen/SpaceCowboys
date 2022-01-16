@@ -100,7 +100,8 @@ void process(int i) {
 void gamesetup() {
 	// create seeker info
 	for (int i = 0; i < 4; i++) isseeker[i] = 0;
-	seeker = rand()%4;
+	// seeker = rand()%4;
+	seeker = 0;
 	isseeker[seeker] = 1;
 	for (int i = 0; i < 4; i++) alive[i] = 1;
 	starttime = time(NULL);
@@ -204,6 +205,8 @@ void phase4() {
 			// }
 		}
 	}
+	for (int i = 0; i < 4; i ++) timedied[i] = -1;
+
 	for (int i = 0; i < 4; i++) if (i != seeker && alive[i]) {
 		if (abs(ipos[i][0]-ipos[seeker][0])+abs(ipos[i][1]-ipos[seeker][1]) <= 1) {
 			alive[i]=0;
@@ -213,7 +216,21 @@ void phase4() {
 	}
 }
 void phase5(int i) {
+	char winner[] = "Seeker";
+	for (int i = 1; i < 4; i ++) {
+		if (timedied[i] == -1) strcpy(winner, "Hiders");
+	}
 
+	printf(YEL BRIGHT REV "Game Over! The %s won!\n\n" RESET, winner);
+	printf(GRN "Stats: \n" RESET);
+
+	if (strcmp(winner, "Seeker") == 0) printf("Player 0 (Seeker): LOST\n");
+	else printf("Player 0 (Seeker): WON\n");
+
+	for (int i = 1; i < 4; i ++) {
+		if (timedied[i] != -1) printf("Player %d: %d seconds\n", i, timedied[i]);
+		else printf("Player %d: SURVIVED\n", i);
+	}
 }
 
 
