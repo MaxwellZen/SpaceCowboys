@@ -31,19 +31,39 @@ int main() {
 			game_setup();
 			refresh();
 			int y = 1, x = 3;
-            mvaddch(y, x, 'P');
+			int py = 1, px = 3;
 			int ch;
+			char ghost[] = "\U0001F47B";
+			char s[] = { 0xf0, 0x9f, 0x98, 0x8e, 0};
 			while ((ch = getch()) != ERR) {
-				if (ch == KEY_LEFT) x -= 1;
-                else if (ch == KEY_RIGHT) x += 1;
-                else if (ch == KEY_UP) y -= 1;
-                else if (ch == KEY_DOWN) y += 1;
+				if (ch == KEY_LEFT) {
+					x -= 1;
+					px = x+1;
+					py = y;
+				}
+                else if (ch == KEY_RIGHT) {
+					x += 1;
+					px = x-1;
+					py = y;
+				}
+                else if (ch == KEY_UP) { 
+					y -= 1;
+					px = x;
+					py = y+1;
+				}
+                else if (ch == KEY_DOWN) {
+					y += 1;
+					px = x;
+					py = y-1;
+				}
                 else if (ch == 'q') {
 					// Restores terminal, exits game
 					endwin();
 					exit(0);
 				}
-                mvaddch(y, x, 'P');
+				mvaddch(py, px, ' ');
+				mvaddch(y, x, 'O');
+				move(y, x);
 			}
 			write(sd, &x, sizeof(int));
 			write(sd, &y, sizeof(int));
