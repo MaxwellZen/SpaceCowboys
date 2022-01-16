@@ -16,8 +16,9 @@
 #ifndef NETWORKING_H
 #define NETWORKING_H
 
-#define height 15
-#define width 60
+#define height 30
+#define width 120
+#define radius 10
 #define namelen 20
 #define gametime 40
 #define LOGIN 0
