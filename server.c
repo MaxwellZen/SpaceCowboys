@@ -205,7 +205,7 @@ void phase4() {
 		}
 	}
 	for (int i = 0; i < 4; i++) if (i != seeker && alive[i]) {
-		if (hypot(pos[i][0]-pos[seeker][0], pos[i][1]-pos[seeker][1]) <= 1) {
+		if (abs(ipos[i][0]-ipos[seeker][0])+abs(ipos[i][1]-ipos[seeker][1]) <= 1) {
 			alive[i]=0;
 			ipos[i][0] = ipos[i][1] = -1;
 			timedied[i] = time(NULL) - starttime;

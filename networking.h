@@ -10,7 +10,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#include <curses.h>
 #include <math.h>
 
 #ifndef NETWORKING_H

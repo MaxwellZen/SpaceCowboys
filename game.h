@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <curses.h>
 
 #define OBSTACLE '@'
 #define BORDER '#'
