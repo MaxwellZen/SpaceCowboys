@@ -1,13 +1,12 @@
 #include "game.h"
+#include "networking.h"
 
 int main() {
     // connect to server
     int to_server, from_server;
     int game_index;
     int players[4];
-    int width, height;
-    int *map;
-    int floor_type;
+    int map[height][width];
     from_server = client_handshake( &to_server );
     // int fd = ;
     // while (1) {
@@ -39,12 +38,9 @@ int main() {
     //
     //     }
         else if (phase==3) {
-          read(from_server, &game_index, sizeof(int));  
+          read(from_server, &game_index, sizeof(int));
           read(from_server, players, sizeof(players));
-          read(from_server, &width, sizeof(int));  
-          read(from_server, &height, sizeof(int));
           read(from_server, map, sizeof(map));
-          read(from_server, &floor_type, sizeof(int));
         }
         else if (phase==4) {
           game_setup();
@@ -52,7 +48,7 @@ int main() {
           int x, y;
           read(from_server, pos, sizeof(pos));
           refresh();
-          char ch = getch();
+          int ch = getch();
           while (ch != 'q') {
             if (ch == KEY_LEFT) {
               x = 0;
@@ -130,4 +126,3 @@ void game_setup() {
     }
 
 }
-
