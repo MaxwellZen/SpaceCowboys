@@ -12,7 +12,7 @@ int main() {
 	// ncurses setup
 	nodelay(stdscr, TRUE);
 	while (1) {
-		int phase;
+		int phase = 4;
 		read(sd, &phase, sizeof(int));
 		if (phase==1) {
 			get_username();
@@ -30,26 +30,20 @@ int main() {
 			read(sd, pos, sizeof(pos));
 			game_setup();
 			refresh();
-			int x, y;
+			int y = 1, x = 3;
+            mvaddch(y, x, 'P');
 			int ch;
 			while ((ch = getch()) != ERR) {
-				if (ch == KEY_LEFT) {
-					x = 0;
-					y = -1;
-				} else if (ch == KEY_RIGHT) {
-					x = 0;
-					y = 1;
-				} else if (ch == KEY_UP) {
-					x = -1;
-					y = 0;
-				} else if (ch == KEY_DOWN) {
-					x = 1;
-					y = 0;
-				} else if (ch == 'q') {
+				if (ch == KEY_LEFT) x -= 1;
+                else if (ch == KEY_RIGHT) x += 1;
+                else if (ch == KEY_UP) y -= 1;
+                else if (ch == KEY_DOWN) y += 1;
+                else if (ch == 'q') {
 					// Restores terminal, exits game
 					endwin();
 					exit(0);
 				}
+                mvaddch(y, x, 'P');
 			}
 			write(sd, &x, sizeof(int));
 			write(sd, &y, sizeof(int));
