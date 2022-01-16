@@ -73,37 +73,11 @@ int main() {
 			char ghost[] = "\U0001F47B";
 			char s[] = { 0xf0, 0x9f, 0x98, 0x8e, 0};
 			while ((ch = getch()) != ERR) {
-				if (ch == KEY_LEFT) {
-					dy--;
-					x -= 1;
-					px = x+1;
-					py = y;
-				}
-                else if (ch == KEY_RIGHT) {
-					dy++;
-					x += 1;
-					px = x-1;
-					py = y;
-				}
-                else if (ch == KEY_UP) {
-					dx--;
-					y -= 1;
-					px = x;
-					py = y+1;
-				}
-                else if (ch == KEY_DOWN) {
-					dx++;
-					y += 1;
-					px = x;
-					py = y-1;
-				}
-                else if (ch == 'q') {
-					// Restores terminal, exits game
-					endwin();
-				}
-				// mvaddch(py, px, ' ');
-				// mvaddch(y, x, hider);
-				// move(y, x);
+				if (ch == KEY_LEFT) dy--;
+                else if (ch == KEY_RIGHT) dy++;
+                else if (ch == KEY_UP) dx--;
+                else if (ch == KEY_DOWN) dx++;
+                else if (ch == 'q') endwin();
 			}
 			write(sd, &dx, sizeof(int));
 			write(sd, &dy, sizeof(int));
