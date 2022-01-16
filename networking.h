@@ -29,6 +29,6 @@ int client_handshake();
 void load_usernames();
 void add_username(char * line);
 int user_exists(char * line);
-void check_username(char * line, int n);
+int check_username(char * line, int n);
 
 #endif

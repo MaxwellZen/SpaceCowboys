@@ -5,6 +5,8 @@
 
 #define OBSTACLE '@'
 #define BORDER '#'
+#define FLOOR1 '-'
+#define FLOOR2 '_'
 
 int main();
 void get_username();
