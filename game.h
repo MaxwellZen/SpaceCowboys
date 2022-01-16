@@ -12,3 +12,4 @@ int main();
 void get_username_mode();
 void get_username();
 void game_setup();
+void game_display();
