@@ -49,6 +49,7 @@ int main() {
 			read(sd, map, sizeof(map));
 		}
 		else if (phase==4) {
+			printf("\e[?25l");
 			int pos[4][2];
 			read(sd, pos, sizeof(pos));
 			game_setup();
