@@ -15,6 +15,9 @@ time_t starttime;
 
 void process(int i);
 void gamesetup();
+void writeint(int fd, int x) {
+	write(fd, &x, sizeof(int));
+}
 
 void phase1(int i);
 void phase2(int i);
@@ -52,6 +55,8 @@ int main() {
 			}
 			if (FD_ISSET(listener, &read_fds)) {
 				fds[found] = server_connect(listener);
+				writeint(fds[found], 1);
+				writeint(fds[found], 0);
 				if (fds[found] > max_descriptor) max_descriptor = fds[found];
 				phase[found] = 1;
 				strcpy(names[found], "Setting username...");
@@ -106,9 +111,6 @@ void gamesetup() {
 		map[ipos[i][0]][ipos[i][1]] = 50 + (rand() % 30);
 	}
 }
-void writeint(int fd, int x) {
-	write(fd, &x, sizeof(int));
-}
 
 
 void phase1(int i) {
@@ -132,6 +134,7 @@ void phase4(int i) {
 		int dx, dy;
 		read(fds[i], &dx, sizeof(int));
 		read(fds[i], &dy, sizeof(int));
+		if (!alive[i]) continue;
 		float nx, ny;
 		if (isseeker[i]) {
 			nx = pos[i][0] + 1.5*dx;
@@ -154,18 +157,13 @@ void phase4(int i) {
 	for (int i = 0; i < 4; i++) if (i != seeker && alive[i]) {
 		if (hypot(pos[i][0]-pos[seeker][0], pos[i][1]-pos[seeker][1]) <= 1) {
 			alive[i]=0;
+			ipos[i][0] = ipos[i][1] = -1;
 			timedied[i] = time(NULL) - starttime;
 		}
 	}
 	for (int i = 0; i < 4; i++) {
 		writeint(fds[i], 4);
-		if (alive[i]) {
-			writeint(fds[i], ipos[i][0]);
-			writeint(fds[i], ipos[i][1]);
-		} else {
-			writeint(fds[i], -1);
-			writeint(fds[i], -1);
-		}
+		write(fds[i], ipos, sizeof(ipos));
 	}
 }
 void phase5(int i) {

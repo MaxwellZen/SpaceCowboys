@@ -1,23 +1,23 @@
 #include "game.h"
 #include "networking.h"
 
+int sd;
+int game_index;
+int players[4];
+int map[height][width];
+
 int main() {
     // connect to server
-    int sd;
-    int game_index;
-    int players[4];
-    int map[height][width];
     sd = client_handshake();
-    // int fd = ;
-    // while (1) {
-        int phase = 1; //read phase
+    while (1) {
+		int phase;
+		read(sd, &phase, sizeof(int));
         if (phase==1) {
           get_username();
-          phase = 2; // if username is valid
         }
-    //     else if (phase==2) {
-    //
-    //     }
+        else if (phase==2) {
+
+        }
         else if (phase==3) {
           read(sd, &game_index, sizeof(int));
           read(sd, players, sizeof(players));
@@ -25,7 +25,7 @@ int main() {
         }
         else if (phase==4) {
           game_setup();
-          int pos[2];
+          int pos[4][2];
           int x, y;
           read(sd, pos, sizeof(pos));
           refresh();
@@ -56,7 +56,7 @@ int main() {
     //     else if (phase==5) {
     //
     //     }
-    // }
+    }
 
     return 0;
 }
@@ -71,7 +71,7 @@ void get_username() {
     if (strcmp(line, "Login\n") == 0) {
       printf("\nUsername: ");
       fgets(line, 100, stdin);
-      check_username(line, 0);
+      // check_username(line, 0);
       // if (check_username(line) == -1) {
       //   printf("Username does not exist\nUsername: ");
       // }
@@ -79,7 +79,7 @@ void get_username() {
     else if (strcmp(line, "Create Account\n") == 0) {
       printf("\nNew Username: ");
       fgets(line, 100, stdin);
-      check_username(line, 1);
+      // check_username(line, 1);
       // if (check_username(line) == -1) {
         // add_username(line);
       // }

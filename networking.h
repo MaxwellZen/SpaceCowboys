@@ -18,6 +18,7 @@
 
 #define height 30
 #define width 120
+#define namelen 20
 
 //for forking server
 int server_setup();
