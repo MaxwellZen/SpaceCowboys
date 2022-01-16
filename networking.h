@@ -19,16 +19,18 @@
 #define height 30
 #define width 120
 #define namelen 20
+#define LOGIN 0
+#define CREATE 1
 
 //for forking server
 int server_setup();
 int server_connect(int from_client);
-
 int client_handshake();
+void writeint(int fd, int x);
 
 void load_usernames();
 void add_username(char * line);
 int user_exists(char * line);
-void check_username(char * line, int n);
+int check_username(char * line, int n);
 
 #endif

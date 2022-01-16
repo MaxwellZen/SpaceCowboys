@@ -5,20 +5,42 @@ int sd;
 int game_index;
 int players[4];
 int map[height][width];
+char line[1000];
+int username_mode;
+char names[4][namelen+1];
 
 int main() {
 	// connect to server
 	sd = client_handshake();
 	// ncurses setup
 	nodelay(stdscr, TRUE);
+
+	get_username_mode();
+	printf("username_mode: %d", username_mode);
+	
 	while (1) {
-		int phase = 4;
+		int phase;
 		read(sd, &phase, sizeof(int));
+		printf("Phase: %d\n", phase);
 		if (phase==1) {
 			get_username();
+			writeint(sd, 1);
+			writeint(sd, username_mode);
+			write(sd, line, (namelen+1) * sizeof(char));
+			int result = 696969;
+			read(sd, &result, sizeof(int));
+			printf("Results: %d\n", result);
+			if (result==0) {
+				if (username_mode==LOGIN) printf("Username does not exist\n");
+				else if (username_mode==CREATE) printf("Username already exists\n");
+			}
 		}
 		else if (phase==2) {
-
+			for (int i = 0; i < 4; i++) read(sd, names[i], (namelen+1) * sizeof(char));
+			printf("Waiting Room:\n");
+			for (int i = 0; i < 4; i++) {
+				printf("%s\n", names[i]);
+			}
 		}
 		else if (phase==3) {
 			read(sd, &game_index, sizeof(int));
@@ -30,12 +52,18 @@ int main() {
 			read(sd, pos, sizeof(pos));
 			game_setup();
 			refresh();
+<<<<<<< HEAD
 			int y = 1, x = 3;
 			int py = 1, px = 3;
+=======
+			int x = 0, y = 0;
+            mvaddch(y, x, 'P');
+>>>>>>> b69320bcee8b11f30adc2f03840ec6792cf2cf97
 			int ch;
 			char ghost[] = "\U0001F47B";
 			char s[] = { 0xf0, 0x9f, 0x98, 0x8e, 0};
 			while ((ch = getch()) != ERR) {
+<<<<<<< HEAD
 				if (ch == KEY_LEFT) {
 					x -= 1;
 					px = x+1;
@@ -56,10 +84,15 @@ int main() {
 					px = x;
 					py = y-1;
 				}
+=======
+				if (ch == KEY_LEFT) y -= 1;
+                else if (ch == KEY_RIGHT) y += 1;
+                else if (ch == KEY_UP) x -= 1;
+                else if (ch == KEY_DOWN) x += 1;
+>>>>>>> b69320bcee8b11f30adc2f03840ec6792cf2cf97
                 else if (ch == 'q') {
 					// Restores terminal, exits game
 					endwin();
-					exit(0);
 				}
 				mvaddch(py, px, ' ');
 				mvaddch(y, x, 'O');
@@ -76,34 +109,29 @@ int main() {
 	return 0;
 }
 
-void get_username() {
-	char line[100];
-
+void get_username_mode() {
 	printf("Hide & Seek\nWelcome Screen! Blah Blah\n");
 	printf("Type 'Login' or 'Create Account': ");
-
-	while(fgets(line, 100, stdin)) {
-		if (strcmp(line, "Login\n") == 0) {
-			printf("\nUsername: ");
-			fgets(line, 100, stdin);
-			// check_username(line, 0);
-			// if (check_username(line) == -1) {
-			//   printf("Username does not exist\nUsername: ");
-			// }
-		}
-		else if (strcmp(line, "Create Account\n") == 0) {
-			printf("\nNew Username: ");
-			fgets(line, 100, stdin);
-			// check_username(line, 1);
-			// if (check_username(line) == -1) {
-			// 	add_username(line);
-			// }
-		}
-		else {
-			printf("Invalid command\n");
-			printf("Type 'Login' or 'Create Account': ");
-		}
+	fgets(line, 1000, stdin);
+	while (strcmp(line, "Login\n") && strcmp(line, "Create Account\n")) {
+		printf("Invalid command\n");
+		printf("Type 'Login' or 'Create Account': ");
+		fgets(line, 1000, stdin);
 	}
+	if (strcmp(line, "Login\n")==0) username_mode = LOGIN;
+	else username_mode = CREATE;
+}
+
+void get_username() {
+	do {
+		if (username_mode==LOGIN) printf("\nUsername: ");
+		else if (username_mode==CREATE) printf("\nNew Username: ");
+		fgets(line, 1000, stdin);
+		if (strlen(line)==1 || strlen(line)>21) {
+			printf("Username must be between 1 and 20 characters long\n");
+		}
+	} while (strlen(line)==1 || strlen(line)>21);
+	*strchr(line, '\n') = 0;
 }
 
 void game_setup() {
@@ -114,41 +142,19 @@ void game_setup() {
 	clear();
 
 	srand( time(NULL) );
+}
 
+void game_display() {
 	// Creating border
 	int x, y;
-	int up, down, left, right;
-
-	up = 0;
-	down = 25;
-	left = 2;
-	right = 65;
-
-	// map[y][x]
-	int map[down + 1][right + 1];
 
 	// Creating obstacles
-	for (x = left; x < right; x ++) {
-		for (y = up; y < down; y ++) {
-			if (rand() % 9 == 0) {
-				map[y][x] = -2;
-				mvvline(y, x, OBSTACLE, 1);
-			}
-			else map[y][x] = 10 + (rand() % 50);
+	for (x = 0; x < height; x ++) {
+		for (y = 0; y < width; y ++) {
+			if (map[x][y]==-2) mvvline(x, y, OBSTACLE, 1);
+			else if (map[x][y]==-2) mvvline(x, y, BORDER, 1);
+			else if (map[x][y]%2==0) mvvline(x, y, FLOOR1, 1);
+			else mvvline(x, y, FLOOR2, 1);
 		}
-	}
-
-	for (y = up; y < down; y ++) {
-		mvvline(y, left, BORDER, 1);
-		mvvline(y, right, BORDER, 1);
-		map[y][left] = -1;
-		map[y][right] = -1;
-	}
-
-	for (x = left; x <= right; x ++) {
-		mvvline(up, x, BORDER, 1);
-		mvvline(down, x, BORDER, 1);
-		map[up][x] = -1;
-		map[down][x] = -1;
 	}
 }

@@ -50,3 +50,5 @@ int client_handshake() {
 
     return sd;
 }
+
+void writeint(int fd, int x) { write(fd, &x, sizeof(int)); }

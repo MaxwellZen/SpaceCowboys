@@ -15,12 +15,9 @@ time_t starttime;
 
 void process(int i);
 void gamesetup();
-void writeint(int fd, int x) {
-	write(fd, &x, sizeof(int));
-}
 
 void phase1(int i);
-void phase2(int i);
+void phase2();
 void phase3(int i);
 void phase4(int i);
 void phase5(int i);
@@ -33,13 +30,13 @@ int main() {
 	while (1) {
 		for (int i = 0; i < 4; i++) {
 			phase[i] = 0;
-			names[i][0] = 0;
+			strcpy(names[i], "Waiting...");
 		}
 		fd_set read_fds;
 		int max_descriptor = listener;
 		found = 0;
 
-		while (1) {
+		while (found<4) {
 			FD_ZERO(&read_fds);
 			FD_SET(listener, &read_fds);
 			for (int i = 0; i < found; i++) FD_SET(fds[i], &read_fds);
@@ -56,21 +53,35 @@ int main() {
 			if (FD_ISSET(listener, &read_fds)) {
 				fds[found] = server_connect(listener);
 				writeint(fds[found], 1);
-				writeint(fds[found], 0);
 				if (fds[found] > max_descriptor) max_descriptor = fds[found];
 				phase[found] = 1;
 				strcpy(names[found], "Setting username...");
 				found++;
+				phase2();
 				printf("Found %d clients\n", found);
 			}
-			if (found==4) break;
 		}
 
 		int f = fork();
 		if (f) {
 			for (int i = 0; i < 4; i++) close(fds[i]);
 		} else {
+			found = 0;
+			for (int i = 0; i < 4; i++) {
+				if (phase[i]==2) found++;
+			}
+			while (found<4) {
+				FD_ZERO(&read_fds);
+				for (int i = 0; i < 4; i++) if (phase[i]==1) FD_SET(fds[i], &read_fds);
+				select(max_descriptor+1, &read_fds, NULL, NULL, NULL);
+				for (int i = 0; i < 4; i++) if (phase[i]==1 && FD_ISSET(fds[i], &read_fds)) {
+					process(i);
+					if (phase[i]==2) found++;
+					printf("%d usernames set\n", found);
+				}
+			}
 			gamesetup();
+			for (int i = 0; i < 4; i++) phase[i]=3;
 			while (1) {
 				usleep(50000);
 				for (int i = 0; i < 4; i++) process(i);
@@ -83,7 +94,7 @@ int main() {
 void process(int i) {
 	if (phase[i]==0) return;
 	else if (phase[i]==1) phase1(i);
-	else if (phase[i]==2) phase2(i);
+	else if (phase[i]==2) phase2();
 	else if (phase[i]==3) phase3(i);
 	else if (phase[i]==4) phase4(i);
 	else if (phase[i]==5) phase5(i);
@@ -112,14 +123,32 @@ void gamesetup() {
 	}
 }
 
-
 void phase1(int i) {
-
+	int x;
+	read(fds[i], &x, sizeof(int));
+	if (x==0) return;
+	int n;
+	read(fds[i], &n, sizeof(int));
+	char line[namelen+1];
+	line[namelen]=0;
+	read(fds[i], line, (namelen+1) * sizeof(char));
+	if (check_username(line, n)) {
+		printf("Check successful\n");
+		writeint(fds[i], 1);
+		strcpy(names[i], line);
+		phase[i] = 2;
+		phase2();
+	} else {
+		writeint(fds[i], 0);
+		writeint(fds[i], 1);
+	}
 }
-void phase2(int i) {
-	writeint(fds[i], 2);
-	writeint(fds[i], found);
-	write(fds[i], names, sizeof(names));
+void phase2() {
+	for (int i = 0; i < 4; i++) if (phase[i]==2) {
+		writeint(fds[i], 2);
+		writeint(fds[i], found);
+		for (int j = 0; j < 4; j++) write(fds[i], names[j], sizeof(char));
+	}
 }
 void phase3(int i) {
 	writeint(fds[i], 3);
@@ -128,6 +157,7 @@ void phase3(int i) {
 	write(fds[i], isseeker, 4*sizeof(int));
 	// write map
 	write(fds[i], map, sizeof(map));
+	phase[i] = 4;
 }
 void phase4(int i) {
 	for (int i = 0; i < 4; i++) {
@@ -197,7 +227,6 @@ void load_usernames() {
 		if (data[i] == '\n') lines += 1;
 	}
 
-	int file1 = open("user.txt", O_RDONLY);
 	arr = calloc(lines / 2, sizeof(struct user));
 
 	for (i = 0; i < lines / 2; i ++) {
@@ -210,13 +239,14 @@ void load_usernames() {
 }
 
 void add_username(char * line) {
-	int file = open("users.txt", O_WRONLY);
-	write(file, line, sizeof(line));
+	int file = open("users.txt", O_WRONLY | O_APPEND);
+	write(file, line, strlen(line));
 	write(file, "0\n", 2);
+	close(file);
 }
 
 int user_exists(char * line) {
-	if (line[sizeof(line) - 2] == '\n') line[sizeof(line - 2)] = '\0';
+	if (strchr(line, '\n')) *strchr(line, '\n') = 0;
 	load_usernames();
 	int i = 0;
 	for (i = 0; i < sizeof(arr); i ++) {
@@ -225,16 +255,19 @@ int user_exists(char * line) {
 	return 0;
 }
 
-void check_username(char * line, int n) {
+int check_username(char * line, int n) {
 	int val = user_exists(line);
-	// Login
-	if (n == 0) {
-		if (val == 1) printf("Login successful");
-		else printf("Username does not exist\n");
-	}
-	// Create Account
-	else {
-		if (val == 1) printf("Username already exists\n");
-		else add_username(line);
-	}
+	printf("[%s], val: %d, n: %d\n", line, val, n);
+	if (n==CREATE && val==0) add_username(line);
+	return val != n;
+	// // Login
+	// if (n == 0) {
+	// 	if (val == 1) printf("Login successful");
+	// 	else printf("Username does not exist\n");
+	// }
+	// // Create Account
+	// else {
+	// 	if (val == 1) printf("Username already exists\n");
+	// 	else add_username(line);
+	// }
 }
