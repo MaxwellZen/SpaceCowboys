@@ -100,9 +100,9 @@ void game_setup() {
 	int up, down, left, right;
 
 	up = 0;
-	down = 25;
-	left = 2;
-	right = 65;
+	down = height;
+	left = 0;
+	right = width;
 
 	// map[y][x]
 	int map[down + 1][right + 1];
