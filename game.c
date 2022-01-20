@@ -8,6 +8,7 @@ int map[height][width];
 char line[1000];
 int username_mode;
 char names[4][namelen+1];
+char username[namelen+1];
 int pos[4][2];
 int currenttime;
 int timedied[4];
@@ -31,9 +32,9 @@ int main() {
 	while (1) {
 		int phase;
 		read(sd, &phase, sizeof(int));
-		// printf("Phase: %d\n", phase);
+		printf("Phase: %d\n", phase);
 		if (phase==1) {
-			printf("\e[?25h");
+			curs_set(1);
 			get_username();
 			writeint(sd, 1);
 			writeint(sd, username_mode);
@@ -45,11 +46,13 @@ int main() {
 				if (username_mode==LOGIN) printf("Username does not exist\n");
 				else if (username_mode==CREATE) printf("Username already exists\n");
 			} else {
+				strcpy(username, line);
 				printf("Waiting for users...\n");
 			}
 		}
 		else if (phase==2) {
-			printf("\e[?25h");
+			curs_set(1);
+			int found; read(sd, &found, sizeof(int));
 			for (int i = 0; i < 4; i++) for (int j = 0; j < 21; j++) read(sd, &names[i][j], sizeof(char));
 			// for (int i = 0; i < 4; i++) read(sd, names[i], (namelen+1) * sizeof(char));
 			// printf("Waiting Room:\n");
@@ -58,17 +61,17 @@ int main() {
 			// }
 		}
 		else if (phase==3) {
-			printf("\e[?25h");
+			curs_set(1);
 			read(sd, &game_index, sizeof(int));
 			read(sd, players, 4*sizeof(int));
 			read(sd, map, height*width*sizeof(int));
 			flashlight[0] = 0; flashlight[1] = 2;
+			game_setup();
 		}
 		else if (phase==4) {
-			printf("\e[?25l");
+			curs_set(0);
 			read(sd, pos, 4*2*sizeof(int));
 			read(sd, &currenttime, sizeof(int));
-			game_setup();
 			game_display();
 			refresh();
 			int y = 1, x = 3;
@@ -89,8 +92,8 @@ int main() {
 			write(sd, &dy, sizeof(int));
 		}
 	    else if (phase==5) {
-			endwin();
-			printf("\e[?25h");
+			curs_set(1);
+			undo_game_setup();
 			read(sd, timedied, 4*sizeof(int));
 			char winner[] = "Seeker";
 			for (int i = 1; i < 4; i ++) {
@@ -108,7 +111,26 @@ int main() {
 				else printf("Player %d: SURVIVED\n", i);
 			}
 			close(sd);
-			exit(0);
+			printf("Continue to new game? (y/n): ");
+			fgets(line, 1000, stdin);
+			while (line[0] != 'y' && line[0] != 'Y' && line[0] != 'n' && line[0] != 'N') {
+				printf("(y/n): ");
+				fgets(line, 1000, stdin);
+			}
+			if (line[0]=='y' || line[0]=='Y') {
+				printf("Entering new game:\n");
+				sd = client_handshake();
+				read(sd, &phase, sizeof(int));
+				writeint(sd, 1);
+				writeint(sd, LOGIN);
+				write(sd, username, 21 * sizeof(char));
+				int result;
+				read(sd, &result, sizeof(int));
+				printf("Waiting for users...\n");
+			} else {
+				printf("Thank you for playing!\n");
+				exit(0);
+			}
 	    }
 	}
 
@@ -148,10 +170,15 @@ void game_setup() {
 	noecho();
 	clear();
 	nodelay(stdscr, TRUE);
-	srand( time(NULL) );
-	// for (int i = 0; i < height; i++) map[i][0] = map[i][width-1] = -1;
-	// for (int i = 0; i < width; i++) map[0][i] = map[height-1][i] = -1;
-	// for (int i = 1; i < height-1; i++) for (int j = 1; j < width-1; j++) if (rand()%9==0) map[i][j]=-2; else map[i][j] = rand()%10;
+}
+
+void undo_game_setup() {
+	echo();
+	nocbreak();
+	endwin();
+	setbuf(stdin, NULL);
+	setbuf(stdout, NULL);
+	// refresh();
 }
 
 int in_radius(double x, double y) {
@@ -169,6 +196,7 @@ int in_flashlight(double x, double y) {
 }
 
 void game_display() {
+	clear();
 	// Creating border
 	int x, y;
 
