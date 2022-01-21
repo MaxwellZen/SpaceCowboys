@@ -34,3 +34,10 @@ Our timeline will be:
 - Jan 16: a basic version of the game will be implemented
 - Jan 19: user interface will be improved, signals will be implemented, flashlights will be added
 - Beyond: add new features / touch up old ones
+
+## Install
+```
+git clone git@github.com:MaxwellZen/SpaceCowboys.git
+cd SpaceCowboys
+make
+```
