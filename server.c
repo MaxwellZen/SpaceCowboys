@@ -31,6 +31,10 @@ int main() {
 	signal(SIGINT, INThandler);
 	srand(time(NULL));
 	listener = server_setup();
+	if (listener==-1) {
+		printf("Listener failed\n");
+		exit(0);
+	}
 	while (1) {
 		for (int i = 0; i < 4; i++) {
 			fds[i] = 0;
@@ -54,6 +58,10 @@ int main() {
 			}
 			if (FD_ISSET(listener, &read_fds)) {
 				fds[found] = server_connect(listener);
+				if (fds[found]==-1) {
+					printf("Failed to connect to client\n");
+					exit(0);
+				}
 				writeint(fds[found], 1);
 				if (fds[found] > max_descriptor) max_descriptor = fds[found];
 				phase[found] = 1;
