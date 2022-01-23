@@ -151,7 +151,7 @@ void get_username_mode() {
 	fgets(line, 1000, stdin);
 	while (strcmp(line, "Login\n") && strcmp(line, "Create Account\n")) {
 		printf("Invalid command\n");
-		printf("Type 'Login' or 'Create Account': ");
+		printf(GRN "Type 'Login' or 'Create Account': " RESET);
 		fgets(line, 1000, stdin);
 	}
 	if (strcmp(line, "Login\n")==0) username_mode = LOGIN;
