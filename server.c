@@ -289,16 +289,6 @@ int check_username(char * line, int n) {
 	printf("[%s], val: %d, n: %d\n", line, val, n);
 	if (n==CREATE && val==0) add_username(line);
 	return val != n;
-	// // Login
-	// if (n == 0) {
-	// 	if (val == 1) printf("Login successful");
-	// 	else printf("Username does not exist\n");
-	// }
-	// // Create Account
-	// else {
-	// 	if (val == 1) printf("Username already exists\n");
-	// 	else add_username(line);
-	// }
 }
 
 

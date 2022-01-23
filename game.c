@@ -2,6 +2,7 @@
 #include "networking.h"
 
 int sd;
+int found;
 int game_index;
 int players[4];
 int map[height][width];
@@ -13,6 +14,13 @@ int pos[4][2];
 int currenttime;
 int timedied[4];
 double flashlight[2];
+char title[6][79] = {
+"   _____ ____  ___   ____________   __________ _       ______  ______  _______",
+"  / ___// __ \\/   | / ____/ ____/  / ____/ __ \\ |     / / __ )/ __ \\ \\/ / ___/",
+"  \\__ \\/ /_/ / /| |/ /   / __/    / /   / / / / | /| / / __  / / / /\\  /\\__ \\ ",
+" ___/ / ____/ ___ / /___/ /___   / /___/ /_/ /| |/ |/ / /_/ / /_/ / / /___/ / ",
+"/____/_/   /_/  |_\\____/_____/   \\____/\\____/ |__/|__/_____/\\____/ /_//____/  ",
+"                                                                              "};
 
 int main() {
 	// connect to server
@@ -32,7 +40,7 @@ int main() {
 	while (1) {
 		int phase;
 		read(sd, &phase, sizeof(int));
-		printf("Phase: %d\n", phase);
+		// printf("Phase: %d\n", phase);
 		if (phase==1) {
 			curs_set(1);
 			get_username();
@@ -47,25 +55,22 @@ int main() {
 				else if (username_mode==CREATE) printf("Username already exists\n");
 			} else {
 				strcpy(username, line);
-				printf("Waiting for users...\n");
+				curses_setup();
 			}
 		}
 		else if (phase==2) {
-			curs_set(1);
-			int found; read(sd, &found, sizeof(int));
+			curs_set(0);
+			read(sd, &found, sizeof(int));
 			read(sd, names, 4*21*sizeof(char));
-			printf("Waiting Room:\n");
-			for (int i = 0; i < 4; i++) {
-				printf("[%s]\n", names[i]);
-			}
+			phase2_display();
+			refresh();
 		}
 		else if (phase==3) {
-			curs_set(1);
+			curs_set(0);
 			read(sd, &game_index, sizeof(int));
 			read(sd, players, 4*sizeof(int));
 			read(sd, map, height*width*sizeof(int));
 			flashlight[0] = 0; flashlight[1] = 2;
-			game_setup();
 		}
 		else if (phase==4) {
 			curs_set(0);
@@ -92,7 +97,7 @@ int main() {
 		}
 	    else if (phase==5) {
 			curs_set(1);
-			undo_game_setup();
+			undo_curses_setup();
 			read(sd, timedied, 4*sizeof(int));
 			char winner[] = "Seeker";
 			int seekerwon = 1;
@@ -170,21 +175,47 @@ void get_username() {
 	*strchr(line, '\n') = 0;
 }
 
-void game_setup() {
+void curses_setup() {
 	initscr();
 	keypad(stdscr, TRUE);
 	cbreak();
 	noecho();
 	clear();
 	nodelay(stdscr, TRUE);
+
+	// Adding color
+	start_color();
+    init_pair(1, COLOR_BLACK, COLOR_GREEN);
+	init_pair(2, COLOR_YELLOW, COLOR_BLACK);
+	init_pair(3, COLOR_GREEN, COLOR_BLACK);
 }
 
-void undo_game_setup() {
+void undo_curses_setup() {
 	echo();
 	nocbreak();
 	endwin();
 	setbuf(stdin, NULL);
 	setbuf(stdout, NULL);
+}
+
+void phase2_display() {
+	clear();
+	for (int i = 0; i < 6; i++) {
+		move(i+1, 1);
+		attron(COLOR_PAIR(3));
+		printw("%s", title[i]);
+		attroff(COLOR_PAIR(3));
+	}
+	move(8, 5);
+	printw("Waiting for players...");
+	move(9, 5);
+	printw("%d / 4 players ready", found);
+	move(11, 5);
+	printw("Players:");
+	for (int i = 0; i < 4; i++) {
+		move(12+i, 5);
+		printw("%s", names[i]);
+	}
 }
 
 int in_radius(double x, double y) {
@@ -205,11 +236,6 @@ void game_display() {
 	clear();
 	// Creating border
 	int x, y;
-
-	// Adding color
-	start_color();
-    init_pair(1, COLOR_BLACK, COLOR_GREEN);
-	init_pair(2, COLOR_YELLOW, COLOR_BLACK);
 
 	// Creating obstacles
 	for (x = 0; x < height; x ++) {
