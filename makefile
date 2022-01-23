@@ -1,5 +1,5 @@
 all: networking.o game.o server.o
-	gcc -o game game.o networking.o -lncurses
+	gcc -o game game.o networking.o -lncurses -lm
 	gcc -o server server.o networking.o
 
 run:
