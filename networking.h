@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <string.h>
 #include <errno.h>
 #include <time.h>
@@ -18,7 +19,7 @@
 
 #define height 20
 #define width 80
-#define radius 10
+#define radius 8
 #define namelen 20
 #define gametime 69
 #define LOGIN 0

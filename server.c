@@ -117,8 +117,7 @@ void process(int i) {
 void gamesetup() {
 	// create seeker info
 	for (int i = 0; i < 4; i++) isseeker[i] = 0;
-	// seeker = rand()%4;
-	seeker = 0;
+	seeker = rand()%4;
 	isseeker[seeker] = 1;
 	for (int i = 0; i < 4; i++) alive[i] = 1;
 	starttime = time(NULL);
@@ -166,11 +165,10 @@ void phase2() {
 	for (int i = 0; i < 4; i++) if (phase[i]==2) {
 		writeint(fds[i], 2);
 		writeint(fds[i], found);
-		for (int j = 0; j < 4; j++) for (int k = 0; k < 21; k++) write(fds[i], &names[j][k], sizeof(char));
+		write(fds[i], names, 4*21*sizeof(char));
 	}
 }
 void phase3(int i) {
-	printf("sending phase 3 info to %d\n", i);
 	writeint(fds[i], 3);
 	writeint(fds[i], i);
 	// write seeker info

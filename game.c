@@ -53,12 +53,11 @@ int main() {
 		else if (phase==2) {
 			curs_set(1);
 			int found; read(sd, &found, sizeof(int));
-			for (int i = 0; i < 4; i++) for (int j = 0; j < 21; j++) read(sd, &names[i][j], sizeof(char));
-			// for (int i = 0; i < 4; i++) read(sd, names[i], (namelen+1) * sizeof(char));
-			// printf("Waiting Room:\n");
-			// for (int i = 0; i < 4; i++) {
-			// 	printf("[%s]\n", names[i]);
-			// }
+			read(sd, names, 4*21*sizeof(char));
+			printf("Waiting Room:\n");
+			for (int i = 0; i < 4; i++) {
+				printf("[%s]\n", names[i]);
+			}
 		}
 		else if (phase==3) {
 			curs_set(1);
@@ -96,19 +95,27 @@ int main() {
 			undo_game_setup();
 			read(sd, timedied, 4*sizeof(int));
 			char winner[] = "Seeker";
+			int seekerwon = 1;
 			for (int i = 1; i < 4; i ++) {
-				if (players[i]==0 && timedied[i] == -1) strcpy(winner, "Hiders");
+				if (players[i]==0 && timedied[i] == -1) {
+					strcpy(winner, "Hiders");
+					seekerwon = 0;
+					break;
+				}
 			}
 
 			printf(YEL BRIGHT REV "Game Over! The %s won!\n\n" RESET, winner);
 			printf(GRN "Stats: \n" RESET);
 
-			if (strcmp(winner, "Seeker") == 0) printf("Player 0 (Seeker): WON\n");
-			else printf("Player 0 (Seeker): LOST\n");
-
-			for (int i = 1; i < 4; i ++) {
-				if (timedied[i] != -1) printf("Player %d: %d seconds\n", i, timedied[i]);
-				else printf("Player %d: SURVIVED\n", i);
+			for (int i = 0; i < 4; i ++) {
+				if (players[i]) {
+					printf("Player %d (Seeker): ", i);
+					if (seekerwon) printf("WON\n");
+					else printf("LOST\n");
+				} else {
+					if (timedied[i] != -1) printf("Player %d: %d seconds\n", i, timedied[i]);
+					else printf("Player %d: SURVIVED\n", i);
+				}
 			}
 			close(sd);
 			printf("Continue to new game? (y/n): ");
@@ -178,7 +185,6 @@ void undo_game_setup() {
 	endwin();
 	setbuf(stdin, NULL);
 	setbuf(stdout, NULL);
-	// refresh();
 }
 
 int in_radius(double x, double y) {
@@ -230,7 +236,6 @@ void game_display() {
 			else mvaddch(pos[i][0], pos[i][1], 'O');
 		}
 	}
-	// mvaddch(pos[game_index][0], pos[game_index][1], 'O');
 	// display time
 	move(0, 2);
 	printw("Time Left: %d s", gametime - currenttime);
