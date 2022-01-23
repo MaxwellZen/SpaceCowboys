@@ -12,7 +12,7 @@ Below is a sample map that all the players will share. There will be walls place
 S = Seeker 
 H = Hider 
 
-![alt text](https://raw.githubusercontent.com/MaxwellZen/HideAndSeek/main/Screen%20Shot%202022-01-12%20at%2010.43.54%20AM.png)
+![alt text](https://raw.githubusercontent.com/MaxwellZen/HideAndSeek/main/game_model.png)
 
 We will use the ncurses library to create the user interface, and other standard libraries, but nothing else.
 
