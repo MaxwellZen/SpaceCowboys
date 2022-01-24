@@ -181,14 +181,9 @@ void get_username() {
 
 void get_history() {
 	read(sd, &user.numgames, sizeof(int));
-	if (user.history) {
-		free(user.history);
-		user.history = 0;
-	}
-	if (user.numgames) {
-		user.history = calloc(user.numgames, sizeof(struct past_game));
-		read(sd, user.history, user.numgames * sizeof(struct past_game));
-	}
+	free(user.history);
+	user.history = calloc(user.numgames, sizeof(struct past_game));
+	read(sd, user.history, user.numgames * sizeof(struct past_game));
 }
 
 void curses_setup() {
@@ -248,7 +243,7 @@ void phase2_display() {
 	}
 	move(8, 32);
 	printw("Previous games:");
-	if (user.numgames) {
+	if (user.numgames>0) {
 		for (int i = 0; i < user.numgames; i++) {
 			move(10+i, 32);
 			print_game(user.history[i]);

@@ -31,12 +31,11 @@ int check_username(char * line, int n);
 
 void INThandler(int sig);
 
-// struct user * arr;
-struct account *arr;
+struct account *users;
 int num_users;
 
 int main() {
-
+	load_usernames();
 	signal(SIGINT, INThandler);
 	listener = server_setup();
 	if (listener==-1) {
@@ -90,6 +89,7 @@ int main() {
 				for (int i = 0; i < 4; i++) if (phase[i]==1) FD_SET(fds[i], &read_fds);
 				select(max_descriptor+1, &read_fds, NULL, NULL, NULL);
 				for (int i = 0; i < 4; i++) if (phase[i]==1 && FD_ISSET(fds[i], &read_fds)) {
+					printf("Second loop to process %d\n", i);
 					process(i);
 				}
 			}
@@ -107,6 +107,7 @@ int main() {
 }
 
 void process(int i) {
+	printf("Processing %d\n", i);
 	if (phase[i]==0) return;
 	else if (phase[i]==1) phase1(i);
 	else if (phase[i]==2) phase2();
@@ -149,6 +150,7 @@ void phase1(int i) {
 	char line[namelen+1];
 	line[namelen]=0;
 	read(fds[i], line, (namelen+1) * sizeof(char));
+	printf("Checking username\n");
 	if (check_username(line, n)) {
 		printf("Check successful\n");
 		strcpy(names[i], line);
@@ -157,9 +159,9 @@ void phase1(int i) {
 		writeint(fds[i], 1);
 		load_usernames();
 		int index = -1;
-		for (int j = 0; j < num_users; j++) if (!strcmp(names[i], arr[j].username)) index = j;
-		writeint(fds[i], arr[index].numgames);
-		if (arr[index].numgames>0) write(fds[i], arr[index].history, arr[index].numgames * sizeof(struct past_game));
+		for (int j = 0; j < num_users; j++) if (!strcmp(names[i], users[j].username)) index = j;
+		writeint(fds[i], users[index].numgames);
+		if (users[index].numgames>0) write(fds[i], users[index].history, users[index].numgames * sizeof(struct past_game));
 		phase2();
 	} else {
 		writeint(fds[i], 0);
@@ -237,15 +239,15 @@ void phase5() {
 	int file = open("users.data", O_WRONLY | O_TRUNC, 0777);
 	writeint(file, num_users);
 	for (int i = 0; i < num_users; i++) {
-		write(file, arr[i].username, 21*sizeof(char));
+		write(file, users[i].username, 21*sizeof(char));
 		int index = -1;
-		for (int j = 0; j < 4; j++) if (!strcmp(names[j], arr[i].username)) index = j;
+		for (int j = 0; j < 4; j++) if (!strcmp(names[j], users[i].username)) index = j;
 		if (index==-1) {
-			writeint(file, arr[i].numgames);
-			if (arr[i].numgames) write(file, arr[i].history, arr[i].numgames*sizeof(struct past_game));
+			writeint(file, users[i].numgames);
+			if (users[i].numgames) write(file, users[i].history, users[i].numgames*sizeof(struct past_game));
 		} else {
-			writeint(file, arr[i].numgames+1);
-			if (arr[i].numgames) write(file, arr[i].history, arr[i].numgames*sizeof(struct past_game));
+			writeint(file, users[i].numgames+1);
+			if (users[i].numgames) write(file, users[i].history, users[i].numgames*sizeof(struct past_game));
 			struct past_game add;
 			add.date = starttm;
 			add.role = isseeker[index];
@@ -253,6 +255,8 @@ void phase5() {
 			write(file, &add, sizeof(struct past_game));
 		}
 	}
+	close(file);
+	load_usernames();
 }
 
 
@@ -282,26 +286,26 @@ void load_usernames() {
 		writeint(file, 0);
 		close(file);
 	}
-	if (arr) {
-		for (int i = 0; i < num_users; i++) if (arr[i].numgames) free(arr[i].history);
-		free(arr);
-		arr = 0;
+	if (users) {
+		for (int i = 0; i < num_users; i++) if (users[i].numgames) free(users[i].history);
+		free(users);
+		users = 0;
 	}
 	int file = open("users.data", O_RDONLY);
 	read(file, &num_users, sizeof(int));
 	printf("%d users\n", num_users);
-	arr = calloc(num_users, sizeof(int));
+	users = calloc(num_users, sizeof(struct account));
 	for (int i = 0; i < num_users; i++) {
-		read(file, arr[i].username, 21*sizeof(char));
-		read(file, &arr[i].numgames, sizeof(int));
-		printf("%s has played %d games\n", arr[i].username, arr[i].numgames);
-		if (arr[i].numgames) {
-			arr[i].history = calloc(arr[i].numgames, sizeof(struct past_game));
-			read(file, arr[i].history, arr[i].numgames * sizeof(struct past_game));
+		read(file, users[i].username, 21*sizeof(char));
+		read(file, &users[i].numgames, sizeof(int));
+		printf("%s has played %d games\n", users[i].username, users[i].numgames);
+		if (users[i].numgames) {
+			users[i].history = calloc(users[i].numgames, sizeof(struct past_game));
+			read(file, users[i].history, users[i].numgames * sizeof(struct past_game));
 		}
-		for (int j = 0; j < arr[i].numgames; j++) {
+		for (int j = 0; j < users[i].numgames; j++) {
 			printf("Game %d: ", j);
-			debug_game(arr[i].history[j]);
+			debug_game(users[i].history[j]);
 		}
 	}
 	close(file);
@@ -325,7 +329,7 @@ int user_exists(char * line) {
 	load_usernames();
 	int i = 0;
 	for (i = 0; i < num_users; i ++) {
-		if (strcmp(arr[i].username, line) == 0) return 1;
+		if (strcmp(users[i].username, line) == 0) return 1;
 	}
 	return 0;
 }
