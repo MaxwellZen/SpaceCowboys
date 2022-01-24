@@ -20,7 +20,7 @@
 #define SERVERIP "149.89.150.110"
 #define SERVERPORT "9845"
 
-#define height 20
+#define height 24
 #define width 80
 #define radius 8
 #define namelen 20
