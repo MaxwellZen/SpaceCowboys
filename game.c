@@ -105,8 +105,8 @@ int main() {
 				read(sd, &currenttime, sizeof(int));
 				for (int i = 0; i < 4; i++) display_player(i);
 				attron(COLOR_PAIR(2));
-				mvvline(0, 0, BORDER, width);
-				mvvline(height-1, 0, BORDER, width);
+				mvhline(0, 0, BORDER, width);
+				mvhline(height-1, 0, BORDER, width);
 				attroff(COLOR_PAIR(2));
 				display_messages();
 				int ch; while ((ch = getch()) != ERR) {}
