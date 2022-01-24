@@ -17,7 +17,7 @@
 #ifndef NETWORKING_H
 #define NETWORKING_H
 
-#define SERVERIP "149.89.150.110"
+#define SERVERIP "149.89.150.100"
 #define SERVERPORT "9845"
 
 #define height 24
