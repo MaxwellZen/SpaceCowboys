@@ -48,14 +48,14 @@ int server_connect(int from_client) {
 	return client_socket;
 }
 
-int client_handshake() {
+int client_handshake(char* ip) {
     //use getaddrinfo
     struct addrinfo * hints, * results;
     hints = calloc(1,sizeof(struct addrinfo));
     hints->ai_family = AF_INET;
     hints->ai_socktype = SOCK_STREAM; //TCP socket
     hints->ai_flags = AI_PASSIVE; //only needed on server
-    if (getaddrinfo(SERVERIP, SERVERPORT, hints, &results) == -1) {
+    if (getaddrinfo(ip, SERVERPORT, hints, &results) == -1) {
         printf("Error on getaddrinfo\n");
         return -1;
     }

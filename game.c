@@ -23,10 +23,14 @@ char title[6][79] = {
 "                                                                              "};
 struct account user;
 int mapshown;
+char ip[1000];
 
 int main() {
 	// connect to server
-	sd = client_handshake();
+	printf("Enter an IP address: ");
+	fgets(ip, 1000, stdin);
+	if (strchr(ip, '\n')) *strchr(ip, '\n')=0;
+	sd = client_handshake(ip);
 	if (sd==-1) {
 		printf("Connection failed\n");
 		exit(0);
@@ -154,7 +158,7 @@ int main() {
 			if (line[0]=='y' || line[0]=='Y') {
 				// if restarting game, then start new connection and manually simulate phase 1
 				printf("Entering new game:\n");
-				sd = client_handshake();
+				sd = client_handshake(ip);
 				read(sd, &phase, sizeof(int));
 				writeint(sd, 1);
 				writeint(sd, LOGIN);

@@ -17,8 +17,7 @@
 #ifndef NETWORKING_H
 #define NETWORKING_H
 
-#define SERVERIP "149.89.150.100"
-#define SERVERPORT "9845"
+#define SERVERPORT "18168"
 
 #define height 24
 #define width 80
@@ -31,7 +30,7 @@
 //for forking server
 int server_setup();
 int server_connect(int from_client);
-int client_handshake();
+int client_handshake(char* ip);
 void writeint(int fd, int x);
 
 void load_usernames();
