@@ -26,5 +26,8 @@ void get_history();
 void curses_setup();
 void undo_curses_setup();
 void phase2_display();
+void display_square(int x, int y);
+void display_player(int i);
+void display_messages();
 void game_display();
 void INThandler(int sig);

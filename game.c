@@ -21,56 +21,57 @@ char title[6][79] = {
 "/____/_/   /_/  |_\\____/_____/   \\____/\\____/ |__/|__/_____/\\____/ /_//____/  ",
 "                                                                              "};
 struct account user;
+int mapshown;
 
 int main() {
 	// connect to server
 	sd = client_handshake();
-	// printf("%d\n", sd);
 	if (sd==-1) {
 		printf("Connection failed\n");
 		exit(0);
 	}
-	// ncurses setup
-	// Bring cursor back, checking for control c
+
+	// set regular cursor and do signal handling
 	curs_set(1);
 	signal(SIGINT, INThandler);
 
+	// prompt user for Login or Create Account
 	get_username_mode();
 
 	while (1) {
+		// read phase
 		int phase;
 		read(sd, &phase, sizeof(int));
-		// printf("Phase: %d\n", phase);
+
+		// phase 1: user enters username
 		if (phase==1) {
 			curs_set(1);
 			get_username();
+			// write info packet to server
 			writeint(sd, 1);
 			writeint(sd, username_mode);
 			write(sd, line, 21 * sizeof(char));
+			// read result
 			int result;
 			read(sd, &result, sizeof(int));
-			if (result==0) {
+			if (result==0) { // unsuccessful login attempt
 				if (username_mode==LOGIN) printf("Username does not exist\n");
 				else if (username_mode==CREATE) printf("Username already exists\n");
-			} else {
+			} else { // successful login attempt
 				strcpy(user.username, line);
 				get_history();
-				// user.numgames = 1;
-				// user.history = malloc(sizeof(struct past_game));
-				// time_t t = time(NULL);
-				// user.history[0].date = *localtime(&t);
-				// user.history[0].role = 0;
-				// user.history[0].result = 15;
 			}
 		}
+		// phase 2: waiting room
 		else if (phase==2) {
-			curs_set(0);
 			curses_setup();
 			read(sd, &found, sizeof(int));
 			read(sd, names, 4*21*sizeof(char));
 			phase2_display();
+			curs_set(0);
 			refresh();
 		}
+		// phase 3: set up game
 		else if (phase==3) {
 			curs_set(0);
 			read(sd, &game_index, sizeof(int));
@@ -78,31 +79,54 @@ int main() {
 			read(sd, map, height*width*sizeof(int));
 			flashlight[0] = 0; flashlight[1] = 2;
 		}
+		// phase 4: play game
 		else if (phase==4) {
 			curs_set(0);
-			read(sd, pos, 4*2*sizeof(int));
-			read(sd, &currenttime, sizeof(int));
-			game_display();
-			refresh();
-			int dx=0, dy=0;
-			int ch;
-			char ghost[] = "\U0001F47B";
-			char s[] = { 0xf0, 0x9f, 0x98, 0x8e, 0};
-			while ((ch = getch()) != ERR) {
-				if (ch == KEY_LEFT) dy--;
-                else if (ch == KEY_RIGHT) dy++;
-                else if (ch == KEY_UP) dx--;
-                else if (ch == KEY_DOWN) dx++;
-				else if (ch == 'z') {flashlight[0] -= 0.5; flashlight[1] -= 0.5;}
-				else if (ch == 'x') {flashlight[0] += 0.5; flashlight[1] += 0.5;}
+			if (mapshown) {
+				for (int i = 0; i < 4; i++) display_square(pos[i][0], pos[i][1]);
+				read(sd, pos, 4*2*sizeof(int));
+				read(sd, &currenttime, sizeof(int));
+				for (int i = 0; i < 4; i++) display_player(i);
+				attron(COLOR_PAIR(2));
+				mvvline(0, 0, BORDER, width);
+				mvvline(height-1, 0, BORDER, width);
+				attroff(COLOR_PAIR(2));
+				display_messages();
+				int ch;
+				// read in movement keys
+				while ((ch = getch()) != ERR) {}
+				writeint(sd, 0); writeint(sd, 0);
+			} else {
+				// read positions and time
+				read(sd, pos, 4*2*sizeof(int));
+				read(sd, &currenttime, sizeof(int));
+				// display game
+				game_display();
+				refresh();
+				int dx=0, dy=0;
+				int ch;
+				// read in movement keys
+				while ((ch = getch()) != ERR) {
+					if (ch == KEY_LEFT) dy--;
+	                else if (ch == KEY_RIGHT) dy++;
+	                else if (ch == KEY_UP) dx--;
+	                else if (ch == KEY_DOWN) dx++;
+					else if (ch == 'z') {flashlight[0] -= 0.5; flashlight[1] -= 0.5;}
+					else if (ch == 'x') {flashlight[0] += 0.5; flashlight[1] += 0.5;}
+				}
+				// write movement information to server
+				write(sd, &dx, sizeof(int));
+				write(sd, &dy, sizeof(int));
+				if (pos[game_index][0]==-1) mapshown = 1;
 			}
-			write(sd, &dx, sizeof(int));
-			write(sd, &dy, sizeof(int));
 		}
+		// phase 5: game over
 	    else if (phase==5) {
 			curs_set(1);
 			undo_curses_setup();
 			read(sd, timedied, 4*sizeof(int));
+			mapshown = 0;
+			// determine who on
 			char winner[] = "Seeker";
 			int seekerwon = 1;
 			for (int i = 1; i < 4; i ++) {
@@ -113,6 +137,7 @@ int main() {
 				}
 			}
 
+			// print game information
 			printf(YEL BRIGHT REV "Game Over! The %s won!\n\n" RESET, winner);
 			printf(GRN "Stats: \n" RESET);
 
@@ -126,7 +151,8 @@ int main() {
 					else printf("Player %d: SURVIVED\n", i);
 				}
 			}
-			close(sd);
+			close(sd); // close socket
+			// option to restart game
 			printf("Continue to new game? (y/n): ");
 			fgets(line, 1000, stdin);
 			while (line[0] != 'y' && line[0] != 'Y' && line[0] != 'n' && line[0] != 'N') {
@@ -134,6 +160,7 @@ int main() {
 				fgets(line, 1000, stdin);
 			}
 			if (line[0]=='y' || line[0]=='Y') {
+				// if restarting game, then start new connection and manually simulate phase 1
 				printf("Entering new game:\n");
 				sd = client_handshake();
 				read(sd, &phase, sizeof(int));
@@ -144,6 +171,7 @@ int main() {
 				read(sd, &result, sizeof(int));
 				get_history();
 			} else {
+				// else, exit program
 				printf("Thank you for playing!\n");
 				exit(0);
 			}
@@ -153,6 +181,7 @@ int main() {
 	return 0;
 }
 
+// prompt user for "Login" or "Create Account"
 void get_username_mode() {
 	printf(YEL BRIGHT REV "%s %s   SPACE COWBOYS   %s %s\n\n" RESET, hider, seeker, seeker, hider);
 	printf(YEL "Welcome!! Enter your information below. \n\n" RESET);
@@ -167,6 +196,7 @@ void get_username_mode() {
 	else username_mode = CREATE;
 }
 
+// prompt user for username
 void get_username() {
 	do {
 		if (username_mode==LOGIN) printf("\nUsername: ");
@@ -179,6 +209,7 @@ void get_username() {
 	*strchr(line, '\n') = 0;
 }
 
+// read in user game history
 void get_history() {
 	read(sd, &user.numgames, sizeof(int));
 	free(user.history);
@@ -186,6 +217,7 @@ void get_history() {
 	read(sd, user.history, user.numgames * sizeof(struct past_game));
 }
 
+// setup ncurses mode
 void curses_setup() {
 	curs_set(0);
 	initscr();
@@ -202,6 +234,7 @@ void curses_setup() {
 	init_pair(3, COLOR_GREEN, COLOR_BLACK);
 }
 
+// exit ncurses mode
 void undo_curses_setup() {
 	curs_set(1);
 	echo();
@@ -211,20 +244,22 @@ void undo_curses_setup() {
 	setbuf(stdout, NULL);
 }
 
+// print a game (for game history)
 void print_game(struct past_game game) {
 	struct tm tm = game.date;
-	printw("%02d-%02d %02d:%02d:%02d   ", tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+	printw("%02d-%02d %02d:%02d:%02d | ", tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 	if (game.role) {
-		printw("SEEKER   ");
+		printw("SEEKER | ");
 		if (game.result==-1) printw("LOST");
 		else printw("WON IN %d SECONDS", game.result);
 	} else {
-		printw("HIDER   ");
+		printw("HIDER  | ");
 		if (game.result==-1) printw("SURVIVED");
 		else printw("DIED IN %d SECONDS", game.result);
 	}
 }
 
+// display phase 2 waiting room screen
 void phase2_display() {
 	clear();
 	for (int i = 0; i < 6; i++) {
@@ -244,7 +279,9 @@ void phase2_display() {
 	move(8, 32);
 	printw("Previous games:");
 	if (user.numgames>0) {
-		for (int i = 0; i < user.numgames; i++) {
+		int i = 0;
+		if (user.numgames > 10) i = user.numgames - 10;
+		for (; i < user.numgames; i++) {
 			move(10+i, 32);
 			print_game(user.history[i]);
 		}
@@ -254,6 +291,7 @@ void phase2_display() {
 	}
 }
 
+// check if coordinates are within radius of player coordinates
 int in_radius(double x, double y) {
 	x -= pos[game_index][0];
 	y -= pos[game_index][1];
@@ -261,6 +299,7 @@ int in_radius(double x, double y) {
 	return pow(x,2)+pow(y,2) <= pow(radius,2);
 }
 
+// check if coordinates are within correct angle of player coordinates
 int in_flashlight(double x, double y) {
 	x -= pos[game_index][0];
 	y -= pos[game_index][1];
@@ -268,45 +307,43 @@ int in_flashlight(double x, double y) {
 	return x*cos(flashlight[0]) >= y*sin(flashlight[0]) && x*cos(flashlight[1]) >= y*sin(flashlight[1]);
 }
 
-void game_display() {
-	clear();
-	// Creating border
-	int x, y;
+// display one square of the board
+void display_square(int x, int y) {
+	if (map[x][y]==-2) {
+		attron(COLOR_PAIR(1));
+		mvaddch(x, y, OBSTACLE);
+		attroff(COLOR_PAIR(1));
+	}
+	else if (map[x][y]==-1) {
+		attron(COLOR_PAIR(2));
+		mvaddch(x, y, BORDER);
+		attroff(COLOR_PAIR(2));
+	}
+	else if (map[x][y]%2==0) mvaddch(x, y, FLOOR1);
+	else mvaddch(x, y, FLOOR2);
+}
 
-	// Creating obstacles
-	for (x = 0; x < height; x ++) {
-		for (y = 0; y < width; y ++) {
-			if (pos[game_index][0]==-1 || (in_radius(x, y) && in_flashlight(x, y))) {
-				if (map[x][y]==-2) {
-					attron(COLOR_PAIR(1));
-					mvvline(x, y, OBSTACLE, 1);
-					attroff(COLOR_PAIR(1));
-				}
-				else if (map[x][y]==-1) {
-					attron(COLOR_PAIR(2));
-					mvvline(x, y, BORDER, 1);
-					attroff(COLOR_PAIR(2));
-				}
-				else if (map[x][y]%2==0) mvvline(x, y, FLOOR1, 1);
-				else mvvline(x, y, FLOOR2, 1);
-			}
-		}
-	}
-	for (int i = 0; i < 4; i++) {
-		if (pos[game_index][0]==-1 || (in_radius(pos[i][0], pos[i][1]) && in_flashlight(pos[i][0], pos[i][1]))) {
-			if (players[i]) mvaddch(pos[i][0], pos[i][1], 'X');
-			else mvaddch(pos[i][0], pos[i][1], 'O');
-		}
-	}
+// display one player
+void display_player(int i) {
+	if (players[i]) mvaddch(pos[i][0], pos[i][1], 'X');
+	else mvaddch(pos[i][0], pos[i][1], 'O');
+}
+
+// display game messages
+void display_messages() {
 	// display time
 	move(0, 2);
 	printw("Time Left: %d s", gametime - currenttime);
+
+	// display role
 	char id[20];
 	if (players[game_index]) strcpy(id, "You are a SEEKER");
 	else if (pos[game_index][0]==-1) strcpy(id, "You are DEAD");
 	else strcpy(id, "You are a HIDER");
 	move(height-1, (width - strlen(id)) / 2);
 	printw("%s", id);
+
+	// display number of hiders left
 	id[0] = 0;
 	int alive = 0;
 	for (int i = 0; i < 4; i++) if (pos[i][0] != -1) alive++;
@@ -315,8 +352,31 @@ void game_display() {
 	printw("%s", id);
 }
 
+// display game screen
+void game_display() {
+	clear();
+	int x, y;
 
+	// display environment
+	for (x = 0; x < height; x ++) {
+		for (y = 0; y < width; y ++) {
+			if (pos[game_index][0]==-1 || (in_radius(x, y) && in_flashlight(x, y))) {
+				display_square(x, y);
+			}
+		}
+	}
 
+	// display players
+	for (int i = 0; i < 4; i++) {
+		if (pos[game_index][0]==-1 || (in_radius(pos[i][0], pos[i][1]) && in_flashlight(pos[i][0], pos[i][1]))) {
+			display_player(i);
+		}
+	}
+
+	display_messages();
+}
+
+// handle ctrl+c signal
 void INThandler(int sig) {
 	curs_set(1);
 	endwin();
