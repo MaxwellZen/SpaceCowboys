@@ -30,4 +30,5 @@ void display_square(int x, int y);
 void display_player(int i);
 void display_messages();
 void game_display();
+void display_results();
 void INThandler(int sig);

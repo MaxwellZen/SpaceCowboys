@@ -181,6 +181,8 @@ void phase1(int i) {
 }
 // phase 2 server communication
 void phase2() {
+	// printf("Phase 2 usernames:\n");
+	// for (int i = 0 ; i < 4;i ++) printf("[%s]\n", names[i]);
 	// send # of ready players, and usernames of each player to clients in phase 2
 	for (int i = 0; i < 4; i++) if (phase[i]==2) {
 		writeint(fds[i], 2);
@@ -222,19 +224,12 @@ void phase4() {
 	}
 	// read movement information
 	for (int i = 0; i < 4; i++) {
-		int dx, dy;
-		read(fds[i], &dx, sizeof(int));
-		read(fds[i], &dy, sizeof(int));
+		int nx, ny;
+		read(fds[i], &nx, sizeof(int));
+		read(fds[i], &ny, sizeof(int));
 		if (alive[i]) {
-			int nx = pos[i][0] + dx;
-			int ny = pos[i][1] + dy;
-			int change = 1;
-			if (nx<1 || nx>height-2 || ny<1 || ny>width-2) change = 0;
-			if (map[nx][ny]==-2) change = 0;
-			if (change) {
-				pos[i][0] = nx;
-				pos[i][1] = ny;
-			}
+			pos[i][0] = nx;
+			pos[i][1] = ny;
 		}
 	}
 	// check for dead hiders
@@ -304,6 +299,7 @@ void load_usernames() {
 	for (int i = 0; i < num_users; i++) {
 		read(file, users[i].username, 21*sizeof(char));
 		read(file, &users[i].numgames, sizeof(int));
+		// printf("%s played %d games\n", users[i].username, users[i].numgames);
 		if (users[i].numgames) {
 			users[i].history = calloc(users[i].numgames, sizeof(struct past_game));
 			read(file, users[i].history, users[i].numgames * sizeof(struct past_game));

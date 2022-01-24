@@ -8,6 +8,7 @@ int players[4];
 int map[height][width];
 char line[1000];
 int username_mode;
+int result;
 char names[4][namelen+1];
 int pos[4][2];
 int currenttime;
@@ -52,11 +53,27 @@ int main() {
 			writeint(sd, username_mode);
 			write(sd, line, 21 * sizeof(char));
 			// read result
-			int result;
 			read(sd, &result, sizeof(int));
 			if (result==0) { // unsuccessful login attempt
-				if (username_mode==LOGIN) printf("Username does not exist\n");
-				else if (username_mode==CREATE) printf("Username already exists\n");
+				char hold[21];
+				strcpy(hold, line);
+				if (username_mode==LOGIN) printf("Username does not exist\nWould you like to create an account with this username? (y/n):");
+				else if (username_mode==CREATE) printf("Username already exists\nWould you like to login to the account with this username? (y/n):");
+				fgets(line, 1000, stdin);
+				while (line[0] != 'y' && line[0] != 'Y' && line[0] != 'n' && line[0] != 'N') {
+					printf("(y/n): ");
+					fgets(line, 1000, stdin);
+				}
+				if (line[0]=='y' || line[0]=='Y') {
+					username_mode = 1 - username_mode;
+					read(sd, &phase, sizeof(int));
+					writeint(sd, 1);
+					writeint(sd, username_mode);
+					write(sd, hold, 21 * sizeof(char));
+					read(sd, &result, sizeof(int));
+					strcpy(user.username, hold);
+					get_history();
+				}
 			} else { // successful login attempt
 				strcpy(user.username, line);
 				get_history();
@@ -92,10 +109,8 @@ int main() {
 				mvvline(height-1, 0, BORDER, width);
 				attroff(COLOR_PAIR(2));
 				display_messages();
-				int ch;
-				// read in movement keys
-				while ((ch = getch()) != ERR) {}
-				writeint(sd, 0); writeint(sd, 0);
+				int ch; while ((ch = getch()) != ERR) {}
+				writeint(sd, -1); writeint(sd, -1);
 			} else {
 				// read positions and time
 				read(sd, pos, 4*2*sizeof(int));
@@ -103,21 +118,22 @@ int main() {
 				// display game
 				game_display();
 				refresh();
-				int dx=0, dy=0;
+				int x=pos[game_index][0], y=pos[game_index][1];
+				if (x==-1) mapshown = 1;
 				int ch;
 				// read in movement keys
 				while ((ch = getch()) != ERR) {
-					if (ch == KEY_LEFT) dy--;
-	                else if (ch == KEY_RIGHT) dy++;
-	                else if (ch == KEY_UP) dx--;
-	                else if (ch == KEY_DOWN) dx++;
+					int nx=x, ny=y;
+					if (ch == KEY_LEFT) ny--;
+	                else if (ch == KEY_RIGHT) ny++;
+	                else if (ch == KEY_UP) nx--;
+	                else if (ch == KEY_DOWN) nx++;
 					else if (ch == 'z') {flashlight[0] -= 0.5; flashlight[1] -= 0.5;}
 					else if (ch == 'x') {flashlight[0] += 0.5; flashlight[1] += 0.5;}
+					if (x != -1 && map[nx][ny] >= 0) x=nx, y=ny;
 				}
 				// write movement information to server
-				write(sd, &dx, sizeof(int));
-				write(sd, &dy, sizeof(int));
-				if (pos[game_index][0]==-1) mapshown = 1;
+				writeint(sd, x); writeint(sd, y);
 			}
 		}
 		// phase 5: game over
@@ -126,31 +142,7 @@ int main() {
 			undo_curses_setup();
 			read(sd, timedied, 4*sizeof(int));
 			mapshown = 0;
-			// determine who on
-			char winner[] = "Seeker";
-			int seekerwon = 1;
-			for (int i = 1; i < 4; i ++) {
-				if (players[i]==0 && timedied[i] == -1) {
-					strcpy(winner, "Hiders");
-					seekerwon = 0;
-					break;
-				}
-			}
-
-			// print game information
-			printf(YEL BRIGHT REV "Game Over! The %s won!\n\n" RESET, winner);
-			printf(GRN "Stats: \n" RESET);
-
-			for (int i = 0; i < 4; i ++) {
-				if (players[i]) {
-					printf("Player %d (Seeker): ", i);
-					if (seekerwon) printf("WON\n");
-					else printf("LOST\n");
-				} else {
-					if (timedied[i] != -1) printf("Player %d: %d seconds\n", i, timedied[i]);
-					else printf("Player %d: SURVIVED\n", i);
-				}
-			}
+			display_results();
 			close(sd); // close socket
 			// option to restart game
 			printf("Continue to new game? (y/n): ");
@@ -167,7 +159,6 @@ int main() {
 				writeint(sd, 1);
 				writeint(sd, LOGIN);
 				write(sd, user.username, 21 * sizeof(char));
-				int result;
 				read(sd, &result, sizeof(int));
 				get_history();
 			} else {
@@ -298,7 +289,6 @@ int in_radius(double x, double y) {
 	y /= 2;
 	return pow(x,2)+pow(y,2) <= pow(radius,2);
 }
-
 // check if coordinates are within correct angle of player coordinates
 int in_flashlight(double x, double y) {
 	x -= pos[game_index][0];
@@ -322,13 +312,11 @@ void display_square(int x, int y) {
 	else if (map[x][y]%2==0) mvaddch(x, y, FLOOR1);
 	else mvaddch(x, y, FLOOR2);
 }
-
 // display one player
 void display_player(int i) {
 	if (players[i]) mvaddch(pos[i][0], pos[i][1], 'X');
 	else mvaddch(pos[i][0], pos[i][1], 'O');
 }
-
 // display game messages
 void display_messages() {
 	// display time
@@ -351,7 +339,6 @@ void display_messages() {
 	move(0, 65);
 	printw("%s", id);
 }
-
 // display game screen
 void game_display() {
 	clear();
@@ -374,6 +361,34 @@ void game_display() {
 	}
 
 	display_messages();
+}
+// display game results
+void display_results() {
+	// determine who won
+	char winner[] = "Seeker";
+	int seekerwon = 1;
+	for (int i = 1; i < 4; i ++) {
+		if (players[i]==0 && timedied[i] == -1) {
+			strcpy(winner, "Hiders");
+			seekerwon = 0;
+			break;
+		}
+	}
+
+	// print game information
+	printf(YEL BRIGHT REV "\nGame Over! The %s won!\n\n" RESET, winner);
+	printf(GRN "Stats: \n" RESET);
+
+	for (int i = 0; i < 4; i ++) {
+		if (players[i]) {
+			printf("Player %d (Seeker): ", i);
+			if (seekerwon) printf("WON\n");
+			else printf("LOST\n");
+		} else {
+			if (timedied[i] != -1) printf("Player %d: %d seconds\n", i, timedied[i]);
+			else printf("Player %d: SURVIVED\n", i);
+		}
+	}
 }
 
 // handle ctrl+c signal
