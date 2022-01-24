@@ -244,20 +244,19 @@ long long filesize(char * name) {
 }
 
 void load_usernames() {
-	int file = open("users.txt", O_RDONLY);
-	int len = filesize("users.txt");
-	char * data = malloc((len + 1) * sizeof(char));
-	int result = read(file, data, sizeof(data));
-	data[len] = 0;
-
+	// Count lines
+	int file1 = open("users.txt", O_RDONLY);
+	char count_lines[filesize("users.txt")];
+	read(file1, count_lines, sizeof(count_lines));
 	int i, j = 0;
 	int lines = 0;
-	for (i = 0; i < sizeof(data); i ++) {
-		if (data[i] == '\n') lines += 1;
-	}
+	for (i = 0; i < sizeof(count_lines); i ++) {
+      if (count_lines[i] == '\n') lines += 1;
+    }
 
 	arr = calloc(lines / 2, sizeof(struct user));
 	num_users = lines / 2;
+	char *data = count_lines;
 
 	for (i = 0; i < lines / 2; i ++) {
 		char * temp = strsep(&data, "\n");
