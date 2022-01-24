@@ -44,7 +44,7 @@ struct past_game {
 };
 
 struct account {
-	char[21] username;
+	char username[21];
 	int numgames;
 	struct past_game * history;
 };

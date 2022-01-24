@@ -9,7 +9,6 @@ int map[height][width];
 char line[1000];
 int username_mode;
 char names[4][namelen+1];
-char username[namelen+1];
 int pos[4][2];
 int currenttime;
 int timedied[4];
@@ -21,6 +20,7 @@ char title[6][79] = {
 " ___/ / ____/ ___ / /___/ /___   / /___/ /_/ /| |/ |/ / /_/ / /_/ / / /___/ / ",
 "/____/_/   /_/  |_\\____/_____/   \\____/\\____/ |__/|__/_____/\\____/ /_//____/  ",
 "                                                                              "};
+struct account user;
 
 int main() {
 	// connect to server
@@ -32,7 +32,7 @@ int main() {
 	}
 	// ncurses setup
 	// Bring cursor back, checking for control c
-	printf("\e[?25h");
+	curs_set(1);
 	signal(SIGINT, INThandler);
 
 	get_username_mode();
@@ -47,14 +47,19 @@ int main() {
 			writeint(sd, 1);
 			writeint(sd, username_mode);
 			write(sd, line, 21 * sizeof(char));
-			int result = 696969;
+			int result;
 			read(sd, &result, sizeof(int));
-			// printf("Results: %d\n", result);
 			if (result==0) {
 				if (username_mode==LOGIN) printf("Username does not exist\n");
 				else if (username_mode==CREATE) printf("Username already exists\n");
 			} else {
-				strcpy(username, line);
+				strcpy(user.username, line);
+				user.numgames = 1;
+				user.history = malloc(sizeof(struct past_game));
+				time_t t = time(NULL);
+				user.history[0].date = *localtime(&t);
+				user.history[0].role = 0;
+				user.history[0].result = 15;
 				curses_setup();
 			}
 		}
@@ -135,7 +140,7 @@ int main() {
 				read(sd, &phase, sizeof(int));
 				writeint(sd, 1);
 				writeint(sd, LOGIN);
-				write(sd, username, 21 * sizeof(char));
+				write(sd, user.username, 21 * sizeof(char));
 				int result;
 				read(sd, &result, sizeof(int));
 				printf("Waiting for users...\n");
@@ -175,7 +180,15 @@ void get_username() {
 	*strchr(line, '\n') = 0;
 }
 
+void get_history() {
+	read(sd, &user.numgames, sizeof(int));
+	if (user.history) free(user.history);
+	user.history = calloc(user.numgames, sizeof(struct past_game));
+	read(sd, user.history, user.numgames * sizeof(struct past_game));
+}
+
 void curses_setup() {
+	curs_set(0);
 	initscr();
 	keypad(stdscr, TRUE);
 	cbreak();
@@ -191,11 +204,26 @@ void curses_setup() {
 }
 
 void undo_curses_setup() {
+	curs_set(1);
 	echo();
 	nocbreak();
 	endwin();
 	setbuf(stdin, NULL);
 	setbuf(stdout, NULL);
+}
+
+void print_game(struct past_game game) {
+	struct tm tm = game.date;
+	printw("%02d-%02d %02d:%02d:%02d   ", tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+	if (game.role) {
+		printw("SEEKER   ");
+		if (game.result==-1) printw("LOST");
+		else printw("WON IN %d SECONDS", game.result);
+	} else {
+		printw("HIDER   ");
+		if (game.result==-1) printw("SURVIVED");
+		else printw("DIED IN %d SECONDS", game.result);
+	}
 }
 
 void phase2_display() {
@@ -207,14 +235,18 @@ void phase2_display() {
 		attroff(COLOR_PAIR(3));
 	}
 	move(8, 5);
-	printw("Waiting for players...");
-	move(9, 5);
 	printw("%d / 4 players ready", found);
-	move(11, 5);
+	move(10, 5);
 	printw("Players:");
 	for (int i = 0; i < 4; i++) {
-		move(12+i, 5);
+		move(11+i, 5);
 		printw("%s", names[i]);
+	}
+	move(8, 32);
+	printw("Previous games:");
+	for (int i = 0; i < user.numgames; i++) {
+		move(10+i, 32);
+		print_game(user.history[i]);
 	}
 }
 
@@ -282,7 +314,7 @@ void game_display() {
 
 
 void INThandler(int sig) {
-	printf("\e[?25h");
+	curs_set(1);
 	endwin();
 	close(sd);
 	exit(0);

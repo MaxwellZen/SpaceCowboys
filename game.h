@@ -27,6 +27,7 @@ char hider[] = {0xF0, 0x9F, 0x90, 0x84, '\0'};
 int main();
 void get_username_mode();
 void get_username();
+void get_history();
 void curses_setup();
 void undo_curses_setup();
 void phase2_display();
