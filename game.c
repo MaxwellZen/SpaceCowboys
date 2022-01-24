@@ -274,9 +274,9 @@ void phase2_display() {
 	move(8, 32);
 	printw("Previous games:");
 	if (user.numgames>0) {
-		int i = 0;
-		if (user.numgames > 10) i = user.numgames - 10;
-		for (; i < user.numgames; i++) {
+		int i = 0; int offset = 0;
+		if (user.numgames > 12) offset = user.numgames - 12;
+		for (; i + offset < user.numgames; i++) {
 			move(10+i, 32);
 			print_game(user.history[i]);
 		}
