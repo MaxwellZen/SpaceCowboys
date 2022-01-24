@@ -36,4 +36,17 @@ void add_username(char * line);
 int user_exists(char * line);
 int check_username(char * line, int n);
 
+// for past games
+struct past_game {
+	struct tm date;
+	int role;
+	int result;
+};
+
+struct account {
+	char[21] username;
+	int numgames;
+	struct past_game * history;
+};
+
 #endif
