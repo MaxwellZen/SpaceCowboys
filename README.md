@@ -5,9 +5,9 @@ Period 4 \
 Maxwell Zen, Jennifer Sun, Alyssa Choi
 
 ## Description
-A multiplayer hide-and-seek game. Players will join and set their username, and wait for the server to get 4 players. Then, the seeker (or seekers) will see within a limited radius of their position, and their job is to find the hiders and catch them. If the hiders survive past a certain time limit, they win, otherwise if they are all eliminated in the time limit the seeker wins. We can also create a flashlight for seekers that only shows the area in the direction the flashlight is pointing, and potentially sound cues for hiders when a seeker is nearby.
+A multiplayer hide-and-seek game. Players will join and set their username, and wait for the server to get 4 players. Then, the seeker will see within a limited radius of their position and within a certain direction, and their job is to find and catch the hiders. If the hiders survive past a certain time limit, they win, otherwise if they are all eliminated in the time limit the seeker wins.
 
-Below is a sample map that all the players will share. There will be walls placed throughout the map that blocks players from going through. There is one seeker and multiple hiders. In the seeker's perspective, the map will be blacked out except for a limited front view representing the seeker's flashlight. The seeker will have slightly faster speed than the hiders. If the seeker "tags" a hider, the hider will be eliminated and removed from the map. After all of the hiders are eliminated, a scoreboard will be displayed with the rank of the hiders. 
+Below is a sample map that all the players will share. There will be obstacles placed throughout the map that blocks players from going through. There is one seeker and multiple hiders. In the seeker's perspective, the map will be blacked out except for a limited front view representing the seeker's flashlight. The seeker will have slightly faster speed than the hiders. If the seeker "tags" a hider, the hider will be eliminated and removed from the map. After all of the hiders are eliminated, a scoreboard will be displayed with the rank of the hiders. 
 
 S = Seeker 
 H = Hider 
@@ -20,7 +20,7 @@ This project will use:
 - Allocating memory (to create structs that represent players / obstacles)
 - Working with files, finding information about files (username corresponds with an account and a game history that can be loaded)
 - Processes (server that waits for players will fork when enough players join)
-- Signals (after ctrl+c other players will be alerted that one player has left)
+- Signals (after ctrl+c sockets have to be closed and ncurses mode will have to be exited)
 - Sockets (to implement server communication)
 
 We will split the work as follows:
@@ -35,12 +35,28 @@ Our timeline will be:
 - Jan 19: user interface will be improved, signals will be implemented, flashlights will be added
 - Beyond: add new features / touch up old ones
 
-## Install
+## Instructions
+First, set up the server at the school IP address 149.89.150.110 (this was picked arbitrarily and can be changed pretty quickly through a macro in networking.h if necessary)
+```
+git clone git@github.com:MaxwellZen/SpaceCowboys.git
+cd SpaceCowboys
+make serverside
+./server
+```
+Then, perform the client side commands on four terminals / computers, and make sure that the terminal window is 80 columns wide and 20 rows tall (any other dimensions may produce unintended behavior)
 ```
 git clone git@github.com:MaxwellZen/SpaceCowboys.git
 cd SpaceCowboys
 make
+./game
 ```
+It's possible that server communication fails at the very beginning (possibly because of an issue with port numbers). From our experience, some combination of waiting for a short amount of time and running server again should get it to work. In the worst case scenario where the port number doesn't work for an extremely long period of time, there are macros defined in networking.h for the server IP address and port number that can be changed to something else that works.
+
+After starting the game client, there will be a couple straightforward prompts asking for whether you'd like to login to an existing account or create a new account, as well as what you'd like your username to be. If you accidentally pick Login instead of Create Account (or vice versa), don't worry - there will be an option to switch modes if the server determines you've entered an incorrect username. Once those are completed, you will be taken to a waiting screen to wait for other players to join.
+
+Once other players have joined, you will be taken to a game screen. At the bottom, there is a message indicating whether you are a hider or a seeker. You can use the arrow keys to move around one tile at a time, the z key to rotate your flashlight clockwise, and the x key to rotate your flashlight counterclockwise. As a seeker, reaching any square on or adjacent to a hider will eliminate that hider, and as a hider, the goal is to avoid the seeker.
+
+After the game ends, results will be printed on to the terminal and you will be prompted to decide whether you want to continue to a new game or end the program.
 
 ## Devlog
 ```
@@ -70,4 +86,5 @@ Jan 21, 3:26 PM - Alyssa - added install section in README.md
 Jan 23, 5:26 PM - Jennifer - changed image name and text formatting
 Jan 23, 8:41 PM - Maxwell - added ncurses mode for phase 2 that can view game history
 Jan 23, 11:54 PM - Jennifer - fixed login system
+Jan 24, 4:47 AM - Maxwell - added game history file system and server communication
 ```
