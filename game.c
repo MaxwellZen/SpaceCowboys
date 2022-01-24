@@ -54,17 +54,18 @@ int main() {
 				else if (username_mode==CREATE) printf("Username already exists\n");
 			} else {
 				strcpy(user.username, line);
-				user.numgames = 1;
-				user.history = malloc(sizeof(struct past_game));
-				time_t t = time(NULL);
-				user.history[0].date = *localtime(&t);
-				user.history[0].role = 0;
-				user.history[0].result = 15;
-				curses_setup();
+				get_history();
+				// user.numgames = 1;
+				// user.history = malloc(sizeof(struct past_game));
+				// time_t t = time(NULL);
+				// user.history[0].date = *localtime(&t);
+				// user.history[0].role = 0;
+				// user.history[0].result = 15;
 			}
 		}
 		else if (phase==2) {
 			curs_set(0);
+			curses_setup();
 			read(sd, &found, sizeof(int));
 			read(sd, names, 4*21*sizeof(char));
 			phase2_display();
@@ -83,8 +84,6 @@ int main() {
 			read(sd, &currenttime, sizeof(int));
 			game_display();
 			refresh();
-			int y = 1, x = 3;
-			int py = 1, px = 3;
 			int dx=0, dy=0;
 			int ch;
 			char ghost[] = "\U0001F47B";
@@ -143,7 +142,7 @@ int main() {
 				write(sd, user.username, 21 * sizeof(char));
 				int result;
 				read(sd, &result, sizeof(int));
-				printf("Waiting for users...\n");
+				get_history();
 			} else {
 				printf("Thank you for playing!\n");
 				exit(0);
@@ -182,9 +181,14 @@ void get_username() {
 
 void get_history() {
 	read(sd, &user.numgames, sizeof(int));
-	if (user.history) free(user.history);
-	user.history = calloc(user.numgames, sizeof(struct past_game));
-	read(sd, user.history, user.numgames * sizeof(struct past_game));
+	if (user.history) {
+		free(user.history);
+		user.history = 0;
+	}
+	if (user.numgames) {
+		user.history = calloc(user.numgames, sizeof(struct past_game));
+		read(sd, user.history, user.numgames * sizeof(struct past_game));
+	}
 }
 
 void curses_setup() {
@@ -244,9 +248,14 @@ void phase2_display() {
 	}
 	move(8, 32);
 	printw("Previous games:");
-	for (int i = 0; i < user.numgames; i++) {
-		move(10+i, 32);
-		print_game(user.history[i]);
+	if (user.numgames) {
+		for (int i = 0; i < user.numgames; i++) {
+			move(10+i, 32);
+			print_game(user.history[i]);
+		}
+	} else {
+		move(10, 32);
+		printw("No games played");
 	}
 }
 

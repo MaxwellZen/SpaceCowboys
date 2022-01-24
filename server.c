@@ -4,15 +4,16 @@ int listener;
 int fds[4];
 int phase[4];
 char names[4][21];
-int found;
+int found, ready;
 int map[height][width];
-float pos[4][2];
 int ipos[4][2];
 int seeker;
 int isseeker[4];
 int alive[4];
 int timedied[4];
 time_t starttime;
+struct tm starttm;
+fd_set read_fds;
 
 void process(int i);
 void gamesetup();
@@ -22,15 +23,21 @@ void phase2();
 void phase3(int i);
 void phase4();
 void phase5();
+
+void load_usernames();
+void add_username(char * line);
+int user_exists(char * line);
+int check_username(char * line, int n);
+
 void INThandler(int sig);
 
-struct user * arr;
+// struct user * arr;
+struct account *arr;
 int num_users;
 
 int main() {
 
 	signal(SIGINT, INThandler);
-	srand(time(NULL));
 	listener = server_setup();
 	if (listener==-1) {
 		printf("Listener failed\n");
@@ -42,9 +49,8 @@ int main() {
 			phase[i] = 0;
 			strcpy(names[i], "Waiting...");
 		}
-		fd_set read_fds;
 		int max_descriptor = listener;
-		found = 0;
+		found = ready = 0;
 
 		while (found<4) {
 			FD_ZERO(&read_fds);
@@ -53,7 +59,6 @@ int main() {
 			select(max_descriptor+1, &read_fds, NULL, NULL, NULL);
 			for (int i = 0; i < found; i++) {
 				if (FD_ISSET(fds[i], &read_fds)) {
-					printf("Processing %d\n", i);
 					process(i);
 				}
 			}
@@ -61,7 +66,7 @@ int main() {
 				fds[found] = server_connect(listener);
 				if (fds[found]==-1) {
 					printf("Failed to connect to client\n");
-					exit(0);
+					continue;
 				}
 				writeint(fds[found], 1);
 				if (fds[found] > max_descriptor) max_descriptor = fds[found];
@@ -80,18 +85,12 @@ int main() {
 				fds[i] = 0;
 			}
 		} else {
-			found = 0;
-			for (int i = 0; i < 4; i++) {
-				if (phase[i]==2) found++;
-			}
-			while (found<4) {
+			while (ready<4) {
 				FD_ZERO(&read_fds);
 				for (int i = 0; i < 4; i++) if (phase[i]==1) FD_SET(fds[i], &read_fds);
 				select(max_descriptor+1, &read_fds, NULL, NULL, NULL);
 				for (int i = 0; i < 4; i++) if (phase[i]==1 && FD_ISSET(fds[i], &read_fds)) {
 					process(i);
-					if (phase[i]==2) found++;
-					printf("%d usernames set\n", found);
 				}
 			}
 			for (int i = 0; i < 4; i++) phase[i]=3;
@@ -116,6 +115,7 @@ void process(int i) {
 	else if (phase[i]==5) phase5(i);
 }
 void gamesetup() {
+	srand(time(NULL));
 	// create seeker info
 	for (int i = 0; i < 4; i++) isseeker[i] = 0;
 	seeker = rand()%4;
@@ -133,9 +133,9 @@ void gamesetup() {
 	}
 	for (int i = 0; i < 4; i ++) timedied[i] = -1;
 	for (int i = 0; i < 4; i++) {
-		ipos[i][0] = pos[i][0] = 3; ipos[i][1] = pos[i][1] = 3;
-		if (i&1) ipos[i][0] = pos[i][0] = height - 4;
-		if (i&2) ipos[i][1] = pos[i][1] = width - 4;
+		ipos[i][0] = 3; ipos[i][1] = 3;
+		if (i&1) ipos[i][0] = height - 4;
+		if (i&2) ipos[i][1] = width - 4;
 		map[ipos[i][0]][ipos[i][1]] = 50 + (rand() % 30);
 	}
 }
@@ -151,9 +151,15 @@ void phase1(int i) {
 	read(fds[i], line, (namelen+1) * sizeof(char));
 	if (check_username(line, n)) {
 		printf("Check successful\n");
-		writeint(fds[i], 1);
 		strcpy(names[i], line);
 		phase[i] = 2;
+		ready++;
+		writeint(fds[i], 1);
+		load_usernames();
+		int index = -1;
+		for (int j = 0; j < num_users; j++) if (!strcmp(names[i], arr[j].username)) index = j;
+		writeint(fds[i], arr[index].numgames);
+		if (arr[index].numgames>0) write(fds[i], arr[index].history, arr[index].numgames * sizeof(struct past_game));
 		phase2();
 	} else {
 		writeint(fds[i], 0);
@@ -165,7 +171,7 @@ void phase2() {
 	for (int i = 0; i < 4; i++) printf("[%s]\n", names[i]);
 	for (int i = 0; i < 4; i++) if (phase[i]==2) {
 		writeint(fds[i], 2);
-		writeint(fds[i], found);
+		writeint(fds[i], ready);
 		write(fds[i], names, 4*21*sizeof(char));
 	}
 }
@@ -182,6 +188,7 @@ void phase4() {
 	int currenttime = time(NULL) - starttime;
 	int alivecount = 0;
 	for (int i = 0; i < 4; i++) if (alive[i]) alivecount++;
+	if (alivecount==1) timedied[seeker] = currenttime;
 	if (currenttime > gametime || alivecount==1) {
 		printf("%d %d\n", currenttime, gametime);
 		for (int i = 0; i < 4; i++) phase[i]=5;
@@ -204,8 +211,6 @@ void phase4() {
 			if (nx<1 || nx>height-2 || ny<1 || ny>width-2) change = 0;
 			if (map[inx][iny]==-2) change = 0;
 			if (change) {
-				pos[i][0] = nx;
-				pos[i][1] = ny;
 				ipos[i][0] = inx;
 				ipos[i][1] = iny;
 			}
@@ -227,54 +232,94 @@ void phase5() {
 		close(fds[i]);
 		fds[i] = 0;
 	}
+	starttm = *localtime(&starttime);
+	load_usernames();
+	int file = open("users.data", O_WRONLY | O_TRUNC, 0777);
+	writeint(file, num_users);
+	for (int i = 0; i < num_users; i++) {
+		write(file, arr[i].username, 21*sizeof(char));
+		int index = -1;
+		for (int j = 0; j < 4; j++) if (!strcmp(names[j], arr[i].username)) index = j;
+		if (index==-1) {
+			writeint(file, arr[i].numgames);
+			if (arr[i].numgames) write(file, arr[i].history, arr[i].numgames*sizeof(struct past_game));
+		} else {
+			writeint(file, arr[i].numgames+1);
+			if (arr[i].numgames) write(file, arr[i].history, arr[i].numgames*sizeof(struct past_game));
+			struct past_game add;
+			add.date = starttm;
+			add.role = isseeker[index];
+			add.result = timedied[index];
+			write(file, &add, sizeof(struct past_game));
+		}
+	}
 }
 
 
 
 // Login Stuff
-struct user{
-	char username[20];
-	int games;
-};
 
-long long filesize(char * name) {
-	struct stat stats;
-	stat(name, &stats);
-	return stats.st_size;
+
+
+void debug_game(struct past_game game) {
+	struct tm tm = game.date;
+	printf("%02d-%02d %02d:%02d:%02d   ", tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+	if (game.role) {
+		printf("SEEKER   ");
+		if (game.result==-1) printf("LOST");
+		else printf("WON IN %d SECONDS", game.result);
+	} else {
+		printf("HIDER   ");
+		if (game.result==-1) printf("SURVIVED");
+		else printf("DIED IN %d SECONDS", game.result);
+	}
+	printf("\n");
 }
 
 void load_usernames() {
-	// Count lines
-	int file1 = open("users.txt", O_RDONLY);
-	char count_lines[filesize("users.txt")];
-	read(file1, count_lines, sizeof(count_lines));
-	int i, j = 0;
-	int lines = 0;
-	for (i = 0; i < sizeof(count_lines); i ++) {
-      if (count_lines[i] == '\n') lines += 1;
-    }
-
-	arr = calloc(lines / 2, sizeof(struct user));
-	num_users = lines / 2;
-	char *data = count_lines;
-
-	for (i = 0; i < lines / 2; i ++) {
-		char * temp = strsep(&data, "\n");
-		strcpy(arr[i].username, temp);
-		temp = strsep(&data, "\n");
-		sscanf(temp, "%d", &arr[i].games);
-		// printf("%s %d\n", arr[i].username, arr[i].games);
+	if (access("users.data", F_OK) != 0) {
+		int file = open("users.data", O_WRONLY | O_CREAT, 0777);
+		writeint(file, 0);
+		close(file);
 	}
-}
-
-void add_username(char * line) {
-	int file = open("users.txt", O_WRONLY | O_APPEND);
-	write(file, line, strlen(line));
-	write(file, "\n", 1);
-	write(file, "0\n", 2);
+	if (arr) {
+		for (int i = 0; i < num_users; i++) if (arr[i].numgames) free(arr[i].history);
+		free(arr);
+		arr = 0;
+	}
+	int file = open("users.data", O_RDONLY);
+	read(file, &num_users, sizeof(int));
+	printf("%d users\n", num_users);
+	arr = calloc(num_users, sizeof(int));
+	for (int i = 0; i < num_users; i++) {
+		read(file, arr[i].username, 21*sizeof(char));
+		read(file, &arr[i].numgames, sizeof(int));
+		printf("%s has played %d games\n", arr[i].username, arr[i].numgames);
+		if (arr[i].numgames) {
+			arr[i].history = calloc(arr[i].numgames, sizeof(struct past_game));
+			read(file, arr[i].history, arr[i].numgames * sizeof(struct past_game));
+		}
+		for (int j = 0; j < arr[i].numgames; j++) {
+			printf("Game %d: ", j);
+			debug_game(arr[i].history[j]);
+		}
+	}
 	close(file);
 }
-
+void add_username(char * line) {
+	int file = open("users.data", O_WRONLY | O_APPEND);
+	write(file, line, 21 * sizeof(char));
+	writeint(file, 0);
+	close(file);
+	file = open("users.data", O_RDONLY);
+	int k;
+	read(file, &k, sizeof(int));
+	close(file);
+	file = open("users.data", O_WRONLY);
+	lseek(file, 0, SEEK_SET);
+	writeint(file, k + 1);
+	close(file);
+}
 int user_exists(char * line) {
 	if (strchr(line, '\n')) *strchr(line, '\n') = 0;
 	load_usernames();
@@ -284,14 +329,11 @@ int user_exists(char * line) {
 	}
 	return 0;
 }
-
 int check_username(char * line, int n) {
 	int val = user_exists(line);
-	printf("[%s], val: %d, n: %d\n", line, val, n);
 	if (n==CREATE && val==0) add_username(line);
 	return val != n;
 }
-
 
 
 void INThandler(int sig) {
