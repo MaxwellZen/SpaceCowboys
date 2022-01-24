@@ -25,6 +25,7 @@ void phase5();
 void INThandler(int sig);
 
 struct user * arr;
+int num_users;
 
 int main() {
 
@@ -256,6 +257,7 @@ void load_usernames() {
 	}
 
 	arr = calloc(lines / 2, sizeof(struct user));
+	num_users = lines / 2;
 
 	for (i = 0; i < lines / 2; i ++) {
 		char * temp = strsep(&data, "\n");
@@ -278,7 +280,7 @@ int user_exists(char * line) {
 	if (strchr(line, '\n')) *strchr(line, '\n') = 0;
 	load_usernames();
 	int i = 0;
-	for (i = 0; i < sizeof(arr); i ++) {
+	for (i = 0; i < num_users; i ++) {
 		if (strcmp(arr[i].username, line) == 0) return 1;
 	}
 	return 0;
