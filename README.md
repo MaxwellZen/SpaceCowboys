@@ -41,3 +41,33 @@ git clone git@github.com:MaxwellZen/SpaceCowboys.git
 cd SpaceCowboys
 make
 ```
+
+## Devlog
+```
+Jan 11, 11:14 AM - Maxwell - started project proposal
+Jan 12, 10:46 AM - Alyssa - revised project proposal
+Jan 15, 2:17 PM - Maxwell - created files and added basic structure
+Jan 15, 2:45 PM - Jennifer - added libraries
+Jan 15, 3:57 PM - Maxwell - updated makefile, implemented select to connect with clients
+Jan 15, 4:46 PM - Jennifer - wrote ncurses setup; made map array with obstacles; worked on fgets phase 1; made struct user with username, stats
+Jan 15, 6:41 PM - Alyssa - finished phase 3 (game setup) client communication; started phase 4 (key signal) client communication
+Jan 15, 6:48 PM - Maxwell - implemented phase 2 and phase 3 server communication and game setup
+Jan 15, 7:02 PM - Alyssa - added client handshake from networking.h
+Jan 15, 9:52 PM - Maxwell - implemented phase 4 server communication
+Jan 15, 10:41 PM - Jennifer - wrote login system functions, resized map
+Jan 16, 10:19 AM - Alyssa - removed trailing characters so only current cursor is displayed in the game map 
+Jan 16, 10:35 AM - Jennifer - added emojis, changed text and map colors; made cursor disappear in the game but appear after exiting with signal handling
+Jan 16, 10:48 AM - Alyssa - added game_display in game.h
+Jan 16, 12:17 PM - Alyssa - fixed game map display by adding borders
+Jan 16, 1:19 PM - Maxwell - integrated game up to phase 4
+Jan 16, 1:52 PM - Alyssa - started flashlight view by restricting player view within a certain radius
+Jan 16, 1:55 PM - Maxwell - added label with time left
+Jan 16, 3:00 AM - Jennifer - wrote phase 5
+Jan 16, 3:28 PM - Maxwell - implemented transition from phase 4 to 5
+Jan 16, 5:18 PM - Maxwell - implemented flashlight view, added bottom text and hiders left text, various fixes
+Jan 20, 1:38 AM - Maxwell - added undo_game_setup method to exit ncurses mode, added method for entering new game
+Jan 21, 3:26 PM - Alyssa - added install section in README.md
+Jan 23, 5:26 PM - Jennifer - changed image name and text formatting
+Jan 23, 8:41 PM - Maxwell - added ncurses mode for phase 2 that can view game history
+Jan 23, 11:54 PM - Jennifer - fixed login system
+```
