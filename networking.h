@@ -17,6 +17,9 @@
 #ifndef NETWORKING_H
 #define NETWORKING_H
 
+#define SERVERIP "149.89.150.110"
+#define SERVERPORT "9845"
+
 #define height 20
 #define width 80
 #define radius 8

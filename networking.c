@@ -7,7 +7,7 @@ int server_setup() {
     hints->ai_family = AF_INET;
     hints->ai_socktype = SOCK_STREAM; //TCP socket
     hints->ai_flags = AI_PASSIVE; //only needed on server
-    if (getaddrinfo(NULL, "9845", hints, &results) == -1) {
+    if (getaddrinfo(NULL, SERVERPORT, hints, &results) == -1) {
         printf("Error on getaddrinfo\n");
         return -1;
     }
@@ -55,7 +55,7 @@ int client_handshake() {
     hints->ai_family = AF_INET;
     hints->ai_socktype = SOCK_STREAM; //TCP socket
     hints->ai_flags = AI_PASSIVE; //only needed on server
-    if (getaddrinfo("127.0.0.1", "9845", hints, &results) == -1) {
+    if (getaddrinfo(SERVERIP, SERVERPORT, hints, &results) == -1) {
         printf("Error on getaddrinfo\n");
         return -1;
     }
