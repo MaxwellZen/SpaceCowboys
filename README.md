@@ -9,8 +9,9 @@ A multiplayer hide-and-seek game. Players will join and set their username, and 
 
 Below is a sample map that all the players will share. There will be obstacles placed throughout the map that blocks players from going through. There is one seeker and multiple hiders. In the seeker's perspective, the map will be blacked out except for a limited front view representing the seeker's flashlight. The seeker will have slightly faster speed than the hiders. If the seeker "tags" a hider, the hider will be eliminated and removed from the map. After all of the hiders are eliminated, a scoreboard will be displayed with the rank of the hiders. 
 
-S = Seeker 
-H = Hider 
+X = Seeker 
+
+O = Hider 
 
 ![alt text](https://raw.githubusercontent.com/MaxwellZen/HideAndSeek/main/game_model.png)
 
@@ -36,23 +37,23 @@ Our timeline will be:
 - Beyond: add new features / touch up old ones
 
 ## Instructions
-First, set up the server at the school IP address 149.89.150.110 (this was picked arbitrarily and can be changed pretty quickly through a macro in networking.h if necessary)
+First, set up the server at any known IP address
 ```
 git clone git@github.com:MaxwellZen/SpaceCowboys.git
 cd SpaceCowboys
 make serverside
 ./server
 ```
-Then, perform the client side commands on four terminals / computers, and make sure that the terminal window is 80 columns wide and 20 rows tall (any other dimensions may produce unintended behavior)
+Then, perform the client side commands on four terminals / computers, and make sure that the terminal window is 80 columns wide and 24 rows tall (any other dimensions may produce unintended behavior)
 ```
 git clone git@github.com:MaxwellZen/SpaceCowboys.git
 cd SpaceCowboys
 make
 ./game
 ```
-It's possible that server communication fails at the very beginning (possibly because of an issue with port numbers). From our experience, some combination of waiting for a short amount of time and running server again should get it to work. In the worst case scenario where the port number doesn't work for an extremely long period of time, there are macros defined in networking.h for the server IP address and port number that can be changed to something else that works.
+The program will first prompt the user for an IP address - if the IP address is incorrect, the program will end and you can run the program again to enter a correct address.
 
-After starting the game client, there will be a couple straightforward prompts asking for whether you'd like to login to an existing account or create a new account, as well as what you'd like your username to be. If you accidentally pick Login instead of Create Account (or vice versa), don't worry - there will be an option to switch modes if the server determines you've entered an incorrect username. Once those are completed, you will be taken to a waiting screen to wait for other players to join.
+After connecting to the server, there will be a couple straightforward prompts asking for whether you'd like to login to an existing account or create a new account, as well as what you'd like your username to be. If you accidentally pick Login instead of Create Account (or vice versa), don't worry - there will be an option to switch modes if the server determines you've entered an incorrect username. Once those are completed, you will be taken to a waiting screen to wait for other players to join.
 
 Once other players have joined, you will be taken to a game screen. At the bottom, there is a message indicating whether you are a hider or a seeker. You can use the arrow keys to move around one tile at a time, the z key to rotate your flashlight clockwise, and the x key to rotate your flashlight counterclockwise. As a seeker, reaching any square on or adjacent to a hider will eliminate that hider, and as a hider, the goal is to avoid the seeker.
 
@@ -87,4 +88,5 @@ Jan 23, 5:26 PM - Jennifer - changed image name and text formatting
 Jan 23, 8:41 PM - Maxwell - added ncurses mode for phase 2 that can view game history
 Jan 23, 11:54 PM - Jennifer - fixed login system
 Jan 24, 4:47 AM - Maxwell - added game history file system and server communication
+Jan 24, 11:02 AM - Maxwell - added prompt for server ip address
 ```
